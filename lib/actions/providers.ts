@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createStaticClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
  */
 
 export async function getPublicProviders() {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -25,7 +25,7 @@ export async function getPublicProviders() {
 }
 
 export async function getFeaturedProviders() {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -105,24 +105,24 @@ export async function seedInitialProviders() {
     // 1. Services
     await supabase.from('services').upsert([
       { 
-        provider_id: partner.id, 
+        partner_id: partner.id, 
         title: "Sanctuary Momentum Session",
         price: partner.category === 'insighte' ? 1800 : 2200,
         duration: 60,
         type: "1:1 Video Call",
         description: "A deep-dive clinical session focused on immediate progress."
       }
-    ], { onConflict: 'provider_id, title' });
+    ], { onConflict: 'partner_id, title' });
 
     // 2. Reviews (Mock data)
     await supabase.from('reviews').upsert([
       {
-        provider_id: partner.id,
+        partner_id: partner.id,
         parent_name: "Anita Deshmukh",
         rating: 5,
         content: `Amazing progress with ${partner.name.split(' ')[0]}. The neuro-affirming approach really works for our son.`
       }
-    ], { onConflict: 'provider_id, content' }).select();
+    ], { onConflict: 'partner_id, content' });
 
     // 3. Slots (Next 3 days)
     const today = new Date();
@@ -133,7 +133,7 @@ export async function seedInitialProviders() {
       const end = new Date(date);
       end.setHours(11, 0, 0, 0);
       return {
-        provider_id: partner.id,
+        partner_id: partner.id,
         start_time: date.toISOString(),
         end_time: end.toISOString(),
         status: 'available'

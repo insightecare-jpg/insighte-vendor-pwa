@@ -1,10 +1,10 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createStaticClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function getPrograms(type?: string) {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   if (!supabase) return [];
   let query = supabase.from("programs").select("*").order("display_order", { ascending: true });
   

@@ -12,12 +12,16 @@ export async function getProviderSlots(providerId: string, date: string) {
   const { data, error } = await supabase
     .from('slots')
     .select('*')
-    .eq('provider_id', providerId)
+    // Try both provider_id and partner_id if unsure, but I'll stick to a fix that mirrors the services change
+    .or(`provider_id.eq.${providerId},partner_id.eq.${providerId}`)
     .eq('status', 'available')
     .gte('start_time', `${date}T00:00:00Z`)
     .lte('start_time', `${date}T23:59:59Z`);
   
-  if (error) return [];
+  if (error) {
+    console.error("Slot Fetch Protocol Error:", error);
+    return [];
+  }
   return data;
 }
 

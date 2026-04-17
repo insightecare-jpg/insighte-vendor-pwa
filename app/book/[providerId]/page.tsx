@@ -24,8 +24,7 @@ export default async function BookingPage({ params }: { params: Promise<{ provid
   const { data: services } = await supabase
     .from('services')
     .select('*, programs(name, slug)')
-    .eq('provider_id', providerId)
-    .eq('is_active', true);
+    .eq('partner_id', providerId);
 
   // 3. Fetch User's Children (if logged in)
   const { data: userData } = await supabase.auth.getUser();
@@ -44,8 +43,8 @@ export default async function BookingPage({ params }: { params: Promise<{ provid
     program_id: s.program_id,
     title: s.title || s.programs?.name || "Therapy Session",
     price: s.price || 1800,
-    duration: s.session_duration_minutes || 60,
-    type: s.offering_type || '1:1_CALL'
+    duration: s.duration || 60,
+    type: s.type || '1:1_CALL'
   })) || [];
 
   return (
