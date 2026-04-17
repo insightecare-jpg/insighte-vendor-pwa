@@ -38,9 +38,9 @@ export default function SetupAuthPage() {
       }
 
       setStatus("Finished!");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setStatus("Error: " + err.message);
+      setStatus("Error: " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
     }

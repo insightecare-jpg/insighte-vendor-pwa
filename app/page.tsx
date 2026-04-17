@@ -63,7 +63,7 @@ export default async function InsighteHome() {
 
       <main id="main-content" className="relative pt-24 pb-24">
         {/* ═══ HERO SECTION ════════════════════════════════════════════════════ */}
-        <InteractiveHero experts={featuredExperts} />
+        <InteractiveHero initialExperts={featuredExperts} />
 
         {/* ═══ HOW IT WORKS ════════════════════════════════════════════════════ */}
         <section style={{ padding: "80px 24px", maxWidth: 1200, margin: "0 auto" }}>
