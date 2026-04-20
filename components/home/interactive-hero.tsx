@@ -14,7 +14,7 @@ const CATEGORIES = [
   { id: "Therapy", label: "Therapy", color: "#5DCAA5" },
   { id: "Education", label: "Education", color: "#85B7EB" },
   { id: "Clinical", label: "Clinical", color: "#EF9F27" },
-  { id: "Academic", label: "Academic", color: "#F0997B" },
+  { id: "Academic", label: "Academic & Hobbies", color: "#F0997B" },
 ];
 
 const SERVICES = [
@@ -29,14 +29,14 @@ const SERVICES = [
     desc: "1:1 classroom assistance for neurodiverse learners."
   },
   {
-    icon: "🧠", name: "ABA Therapy", slug: "aba-therapy", count: "32+ specialists",
-    category: "Therapy", color: "rgba(29,158,117,0.12)",
-    desc: "Evidence-based behavioral intervention for autism & development."
+    icon: "🧠", name: "Special Educator", slug: "special-educator", count: "32+ specialists",
+    category: "Education", color: "rgba(29,158,117,0.12)",
+    desc: "Personalized remedial teaching and learning support."
   },
   {
-    icon: "📐", name: "Special Education", slug: "special-education", count: "58+ specialists",
-    category: "Education", color: "rgba(24,95,165,0.12)",
-    desc: "Personalized learning plans for ADHD, dyslexia, and more."
+    icon: "📐", name: "Developmental Support", slug: "developmental-support", count: "58+ specialists",
+    category: "Therapy", color: "rgba(24,95,165,0.12)",
+    desc: "Holistic care for neurodiverse growth and milestones."
   },
   {
     icon: "🧩", name: "Occupational Therapy", slug: "occupational-therapy", count: "28+ specialists",
@@ -48,6 +48,26 @@ const SERVICES = [
     category: "Clinical", color: "rgba(216,90,48,0.12)",
     desc: "Emotional support for anxiety, trauma, and social growth."
   },
+  {
+    icon: "📐", name: "Mathematics & Science", slug: "math-science", count: "120+ tutors",
+    category: "Academic", color: "rgba(240,153,123,0.12)",
+    desc: "Foundational conceptual clarity for K-12 students."
+  },
+  {
+    icon: "🎹", name: "Music & Arts", slug: "music-arts", count: "85+ instructors",
+    category: "Academic", color: "rgba(133,183,235,0.12)",
+    desc: "Piano, guitar, vocals, and creative arts for expression."
+  },
+  {
+    icon: "💻", name: "Coding & STEM", slug: "coding-stem", count: "50+ mentors",
+    category: "Academic", color: "rgba(93,202,165,0.12)",
+    desc: "Logic-building, programming, and robotics for young minds."
+  },
+  {
+    icon: "♟️", name: "Chess & Strategy", slug: "chess-strategy", count: "30+ masters",
+    category: "Academic", color: "rgba(239,159,39,0.12)",
+    desc: "Critical thinking and cognitive development through play."
+  }
 ];
 
 const TRUST_ITEMS = [
@@ -56,6 +76,18 @@ const TRUST_ITEMS = [
 
 // ─── SMART SEARCH SUGGESTIONS ────────────────────────────────────────────────
 const ALL_SUGGESTIONS = [
+  {
+    icon: "🧑‍🏫", text: "Special Educator near me", tag: "Education",
+    category: "Special Education", ageGroup: "All Ages",
+    keywords: ["special", "educator", "remedial", "teaching", "tutor", "learning", "support"],
+    color: "rgba(133,183,235,0.12)",
+  },
+  {
+    icon: "💬", text: "Child Counselling sessions", tag: "Clinical",
+    category: "Child Counselling", ageGroup: "Adolescent",
+    keywords: ["counsell", "psycholog", "anxiety", "behavior", "emotional", "trauma"],
+    color: "rgba(216,90,48,0.12)",
+  },
   {
     icon: "🗣️", text: "Speech delay support", tag: "Therapy",
     category: "Speech Therapy", ageGroup: "3-6 yrs",
@@ -69,16 +101,16 @@ const ALL_SUGGESTIONS = [
     color: "rgba(59,109,17,0.12)",
   },
   {
-    icon: "🧠", text: "Autism / ASD Assessment", tag: "Clinical",
-    category: "Autism", ageGroup: "Early Childhood",
-    keywords: ["autism", "asd", "assessment", "diagnosis", "spectrum", "sensory"],
-    color: "rgba(29,158,117,0.12)",
+    icon: "📐", text: "Math & Science Tutor", tag: "Academic",
+    category: "Academic", ageGroup: "Grade 1-12",
+    keywords: ["math", "tutor", "science", "physics", "cbse", "icse", "exams", "study"],
+    color: "rgba(240,153,123,0.12)",
   },
   {
-    icon: "📐", text: "Math tutor (ICSE/CBSE)", tag: "Academic",
-    category: "Tutoring", ageGroup: "Grade 1-10",
-    keywords: ["math", "tutor", "science", "physics", "cbse", "icse", "exams", "study"],
-    color: "rgba(24,95,165,0.12)",
+    icon: "💻", text: "Coding for kids", tag: "STEM",
+    category: "Academic", ageGroup: "6-15 yrs",
+    keywords: ["coding", "programming", "python", "scratch", "logic", "stem"],
+    color: "rgba(93,202,165,0.12)",
   },
   {
     icon: "🧩", text: "Occupational therapy", tag: "Rehab",
@@ -87,22 +119,10 @@ const ALL_SUGGESTIONS = [
     color: "rgba(139,127,240,0.12)",
   },
   {
-    icon: "💬", text: "Child Psychologist", tag: "Mental Health",
-    category: "Child Counselling", ageGroup: "Adolescent",
-    keywords: ["counsell", "psycholog", "anxiety", "behavior", "emotional", "trauma"],
-    color: "rgba(216,90,48,0.12)",
-  },
-  {
-    icon: "👩‍⚕️", text: "ADHD / focus coaching", tag: "Behavioural",
-    category: "Behavior Therapy", ageGroup: "5-15 yrs",
-    keywords: ["adhd", "attention", "focus", "hyperactive", "executive", "impulse"],
-    color: "rgba(239,159,39,0.12)",
-  },
-  {
-    icon: "👨‍👩‍👧", text: "Parent Training (ABA/DIR)", tag: "Coaching",
-    category: "Parenting", ageGroup: "Parents",
-    keywords: ["parent", "coaching", "training", "caregive", "guidance"],
-    color: "rgba(139,127,240,0.12)",
+    icon: "🎹", text: "Piano / Music teacher", tag: "Hobbies",
+    category: "Academic", ageGroup: "All Ages",
+    keywords: ["piano", "guitar", "music", "singing", "ukulele", "keyboard"],
+    color: "rgba(133,183,235,0.12)",
   },
 ];
 
@@ -335,7 +355,7 @@ export function InteractiveHero({ initialExperts = [] }: InteractiveHeroProps) {
             <div className="absolute left-0 right-0" style={{
               top: "calc(100% + 8px)", background: "#1a1c2e",
               border: "0.5px solid rgba(255,255,255,0.12)",
-              borderRadius: "18px", padding: "12px 0", zIndex: 50,
+              borderRadius: "18px", padding: "12px 0", zIndex: 100,
               boxShadow: "0 32px 64px rgba(0,0,0,0.5)",
             }}>
               {/* AI label */}
@@ -472,7 +492,7 @@ export function InteractiveHero({ initialExperts = [] }: InteractiveHeroProps) {
               From speech delays to exam prep — find the right expert for where your child is right now.
             </p>
           </div>
-          <Link href="/specialists" className="focus-visible:ring-2 focus-visible:ring-[#8b7ff0] focus-visible:outline-none rounded-sm" style={{
+          <Link href="/services" className="focus-visible:ring-2 focus-visible:ring-[#8b7ff0] focus-visible:outline-none rounded-sm" style={{
             fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase",
             color: "#8b7ff0", textDecoration: "none", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap",
           }}>View all services →</Link>

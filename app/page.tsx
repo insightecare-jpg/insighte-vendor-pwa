@@ -96,7 +96,7 @@ export default async function InsighteHome() {
               }}>
                 <div style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 28, color: "rgba(255,255,255,0.08)", lineHeight: 1 }} aria-hidden="true">{step.num}</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: "#e0daea" }}>{step.title}</div>
-                <div style={{ fontSize: 12, color: "#8a8591", lineHeight: 1.6 }}>{step.desc}</div>
+                <div style={{ fontSize: 13, color: "#b4b0c0", lineHeight: 1.6 }}>{step.desc}</div>
               </div>
             ))}
           </div>

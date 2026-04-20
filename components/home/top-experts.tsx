@@ -13,17 +13,10 @@ const FEATURED_EXPERTS = [
     provider_type: "Autism Specialist",
     category: "Autism",
     specializations: ["ABA Therapy", "Early Intervention"],
-    rating_avg: 4.9,
-    review_count: 124,
-    city: "Bangalore",
-    avatar_url: "/images/experts/autism_specialist.png",
-    experience_years: 12,
-    total_bookings: 340,
+    rating_avg: 4.9, review_count: 124, city: "Bangalore",
+    avatar_url: "/images/experts/autism_specialist.png", experience_years: 12, total_bookings: 340,
     bio: "Clinical psychologist specializing in neuro-developmental support and family guidance through evidence-based ABA therapy.",
-    consultation_fee: 1500,
-    is_verified: true,
-    mode: "In-Person",
-    session_modes: ["IN_PERSON", "ONLINE"],
+    consultation_fee: 1500, is_verified: true, mode: "In-Person", session_modes: ["IN_PERSON", "ONLINE"],
     slug: "priya-sharma",
   },
   {
@@ -32,36 +25,22 @@ const FEATURED_EXPERTS = [
     provider_type: "Speech Therapist",
     category: "Speech Therapy",
     specializations: ["Articulation", "Language Delay"],
-    rating_avg: 4.8,
-    review_count: 98,
-    city: "Mumbai",
-    avatar_url: "/images/experts/speech_therapist.png",
-    experience_years: 8,
-    total_bookings: 210,
+    rating_avg: 4.8, review_count: 98, city: "Mumbai",
+    avatar_url: "/images/experts/speech_therapist.png", experience_years: 8, total_bookings: 210,
     bio: "Dedicated speech-language pathologist helping children overcome communication hurdles with fun, engaging virtual sessions.",
-    consultation_fee: 1200,
-    is_verified: true,
-    mode: "Online",
-    session_modes: ["ONLINE"],
+    consultation_fee: 1200, is_verified: true, mode: "Online", session_modes: ["ONLINE"],
     slug: "rahul-iyer",
   },
   {
     id: "3",
     name: "Dr. Ananya Kapoor",
-    provider_type: "Behavioral Specialist",
+    provider_type: "Child Counsellor",
     category: "Child Counselling",
     specializations: ["CBT", "Social Skills"],
-    rating_avg: 4.9,
-    review_count: 87,
-    city: "Delhi",
-    avatar_url: "/images/experts/behavioral_specialist.png",
-    experience_years: 10,
-    total_bookings: 290,
+    rating_avg: 4.9, review_count: 87, city: "Delhi",
+    avatar_url: "/images/experts/behavioral_specialist.png", experience_years: 10, total_bookings: 290,
     bio: "Specialist in ADHD management and emotional regulation, helping children build long-term resilience and focus.",
-    consultation_fee: 1800,
-    is_verified: true,
-    mode: "In-Person",
-    session_modes: ["IN_PERSON", "ONLINE"],
+    consultation_fee: 1800, is_verified: true, mode: "In-Person", session_modes: ["IN_PERSON", "ONLINE"],
     slug: "ananya-kapoor",
   },
   {
@@ -70,17 +49,10 @@ const FEATURED_EXPERTS = [
     provider_type: "Special Educator",
     category: "Special Education",
     specializations: ["IEP Design", "Learning Support"],
-    rating_avg: 5.0,
-    review_count: 61,
-    city: "Bangalore",
-    avatar_url: "/images/experts/special_educator.png",
-    experience_years: 15,
-    total_bookings: 180,
+    rating_avg: 5.0, review_count: 61, city: "Bangalore",
+    avatar_url: "/images/experts/special_educator.png", experience_years: 15, total_bookings: 180,
     bio: "Senior educator focused on inclusive schooling and personalized curriculum adaptation for diverse learning needs.",
-    consultation_fee: 900,
-    is_verified: true,
-    mode: "In-Person",
-    session_modes: ["IN_PERSON"],
+    consultation_fee: 900, is_verified: true, mode: "In-Person", session_modes: ["IN_PERSON"],
     slug: "shanti-devi",
   },
 ];
@@ -193,17 +165,16 @@ export function TopExperts({ zone, initialExperts = [] }: TopExpertsProps) {
         </div>
       )}
 
-      {/* ── EXPERTS LIST (Vertical on Mobile, Horizontal Scroll on Desktop) ── */}
-      <div className="relative -mx-6 px-6 lg:mx-0 lg:px-0">
+      {/* ── EXPERTS GRID ── */}
+      <div className="relative">
         <div 
           ref={cardsRef} 
-          className="flex flex-col md:flex-row md:overflow-x-auto gap-8 md:gap-6 pb-12 pt-10 md:snap-x md:snap-mandatory custom-scrollbar"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6 pb-12 pt-10"
         >
           {filteredExperts.map((expert) => (
             <div 
               key={expert.id} 
-              className="md:snap-start flex-none w-full md:w-[360px] lg:w-[380px] mb-4 md:mb-0"
+              className="w-full flex"
             >
               <ProviderCard 
                 provider={expert as any} 
@@ -212,19 +183,9 @@ export function TopExperts({ zone, initialExperts = [] }: TopExpertsProps) {
             </div>
           ))}
         </div>
-        
-        {/* Optional fading edges for desktop scroll */}
-        <div className="hidden lg:block absolute top-0 left-0 bottom-12 w-6 bg-gradient-to-r from-[#111224] to-transparent pointer-events-none z-10" />
-        <div className="hidden lg:block absolute top-0 right-0 bottom-12 w-12 bg-gradient-to-l from-[#111224] to-transparent pointer-events-none z-10" />
       </div>
 
-      {/* ── TRUST INDICATOR ── */}
-      <div className="mt-16 flex flex-wrap justify-center items-center gap-x-12 gap-y-6 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Narayana Health</span>
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Cloudnine</span>
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Manipal Hospitals</span>
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Rainbow Children's</span>
-      </div>
+
     </section>
   );
 }
