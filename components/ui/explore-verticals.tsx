@@ -23,7 +23,7 @@ const VERTICALS = [
     color: "#D3C4B5",
     accent: "bg-[#D3C4B5]/10",
     textColor: "text-[#D3C4B5]",
-    services: ["Speech Therapy", "OT", "Behavior Therapy", "Physiotherapy", "Play Therapy", "Special Ed"]
+    services: ["Speech Therapy", "OT", "Behavior Therapy", "Special Educator", "Play Therapy", "Special Ed"]
   },
   {
     id: "counselling",
@@ -34,7 +34,7 @@ const VERTICALS = [
     color: "#C8C4DB",
     accent: "bg-[#C8C4DB]/10",
     textColor: "text-[#C8C4DB]",
-    services: ["Children's Counselling", "Family Sessions", "Online Support", "Career Guidance"]
+    services: ["Child Counselling", "Family Sessions", "Psychology", "Career Guidance"]
   },
   {
     id: "tutoring",
@@ -45,7 +45,7 @@ const VERTICALS = [
     color: "#BACCB3",
     accent: "bg-[#BACCB3]/10",
     textColor: "text-[#BACCB3]",
-    services: ["Home Tutoring", "CBSE/ICSE", "Special Education", "Early Learning"]
+    services: ["Math & Science", "Coding & STEM", "Early Learning", "Special Ed"]
   },
   {
     id: "curricular",
@@ -56,7 +56,7 @@ const VERTICALS = [
     color: "#D3C4B5",
     accent: "bg-[#D3C4B5]/10",
     textColor: "text-[#D3C4B5]",
-    services: ["Art", "Music", "Yoga", "Sports", "Dance"]
+    services: ["Chess", "Music & Arts", "Sports", "Dance", "Yoga"]
   }
 ];
 
