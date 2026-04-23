@@ -1,4 +1,4 @@
-import { Zone, ALL_ZONES } from "@/lib/geo";
+import { Zone } from "@/lib/geo";
 
 // Suggestions data
 export const ALL_SUGGESTIONS = [

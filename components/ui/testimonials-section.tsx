@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Play, Quote, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Testimonial {
   id: string;

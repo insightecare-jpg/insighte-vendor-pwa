@@ -9,6 +9,7 @@ import Script from "next/script";
 export function StickyBookingSidebar({
   context,
   state,
+  childId,
   onStateChange,
   isAuthConfirmed,
 }: {
@@ -74,7 +75,7 @@ export function StickyBookingSidebar({
         amount: order.amount,
         currency: order.currency,
         name: "Insighte Child Center",
-        description: `${context.selectedService} with ${context.selectedExpert.name}`,
+        description: `${context.selectedService} with ${context.selectedExpert?.name || 'Expert'}`,
         order_id: order.id,
         handler: async function (response: any) {
            // Payment Success Callback

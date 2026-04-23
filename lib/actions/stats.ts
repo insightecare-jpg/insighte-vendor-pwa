@@ -18,7 +18,7 @@ export async function getProviderCounts() {
     const byService: Record<string, number> = {};
     const uniquePartnersByService: Record<string, Set<string>> = {};
 
-    services.forEach(s => {
+    services.forEach((s: any) => {
       if (!uniquePartnersByService[s.title]) {
         uniquePartnersByService[s.title] = new Set();
       }

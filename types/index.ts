@@ -34,6 +34,7 @@ export interface Provider {
   age_groups: string[];
   booking_count: number;
   is_featured: boolean;
+  is_verified?: boolean;
   created_at: string;
 }
 

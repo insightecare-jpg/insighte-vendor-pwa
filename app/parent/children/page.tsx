@@ -27,6 +27,9 @@ export default function MyChildrenPage() {
   const [selectedChild, setSelectedChild] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [children, setChildren] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const supabase = createClient();
 
   async function fetchData() {
     setLoading(true);

@@ -13,6 +13,7 @@ import {
   Heart,
   Users,
   Sparkles,
+  ArrowRight,
 } from "lucide-react";
 
 import { TestimonialsSection } from "@/components/ui/testimonials-section";

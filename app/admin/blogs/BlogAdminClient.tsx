@@ -20,6 +20,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export default function BlogAdminClient() {
@@ -111,6 +112,12 @@ export default function BlogAdminClient() {
     }
     
     setEditingId(null);
+    fetchBlogs();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    await supabase.from('blog_posts').delete().eq('id', id);
     fetchBlogs();
   };
 

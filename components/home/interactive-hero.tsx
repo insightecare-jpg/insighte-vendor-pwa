@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { UnifiedSearchBar } from "@/components/shared/UnifiedSearchBar";
 import { Zone } from "@/lib/geo";
 import { TopExperts } from "@/components/home/top-experts";
+import { cn } from "@/lib/utils";
 
 // ─── DATA DELEGATES ───────────────────────────────────────────────────────────
 const CATEGORIES = [
