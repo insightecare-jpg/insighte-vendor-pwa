@@ -22,7 +22,8 @@ import {
   MessageSquare,
   Eye,
   EyeOff,
-  Rocket
+  Rocket,
+  LogOut
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -42,6 +43,7 @@ import {
   toggleReviewLive,
   submitProfileForReview 
 } from "@/lib/actions/provider/core";
+import { logout } from "@/app/actions/auth";
 import Image from "next/image";
 
 export default function ProviderProfile() {
@@ -184,6 +186,18 @@ export default function ProviderProfile() {
         </div>
 
         <div className="flex items-center gap-4">
+           <Button 
+            onClick={async () => {
+              toast.info("Signing out...");
+              await logout();
+            }}
+            variant="ghost"
+            className="h-20 px-6 rounded-3xl border border-white/5 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 font-black uppercase tracking-widest text-[11px] transition-all"
+           >
+              <LogOut className="h-5 w-5 mr-3" />
+              Sign Out
+           </Button>
+
            {partner?.status !== 'PENDING_REVIEW' && partner?.status !== 'LIVE' && (
              <Button 
                 onClick={handleSubmitReview}

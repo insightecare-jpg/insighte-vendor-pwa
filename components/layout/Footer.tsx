@@ -10,7 +10,7 @@ const FOOTER_LINKS = [
     links: [
       { name: "Find Specialists", href: "/specialists" },
       { name: "Programs & Curations", href: "/programs" },
-      { name: "Talk to our Team", href: "/book" },
+      { name: "Talk to our Team", href: "/booking/checkout?type=consultation" },
       { name: "Parent Login", href: "/login" },
       { name: "Sign Up", href: "/signup" },
     ],
@@ -28,9 +28,12 @@ const FOOTER_LINKS = [
     links: [
       { name: "About Us", href: "/about" },
       { name: "Wisdom Hub (Blog)", href: "/blog" },
-      { name: "Speech Therapy", href: "/specialists?category=Speech Therapy" },
-      { name: "Behavior Therapy", href: "/specialists?category=Behavior Therapy" },
-      { name: "Special Education", href: "/specialists?category=Special Education" },
+      { name: "Speech Therapy", href: "/services/speech-therapy" },
+      { name: "Occupational Therapy", href: "/services/occupational-therapy" },
+      { name: "Behavior Therapy", href: "/services/behavior-therapy" },
+      { name: "Special Education", href: "/services/special-education" },
+      { name: "Child Counseling", href: "/services/child-counseling" },
+      { name: "Physiotherapy", href: "/services/physiotherapy" },
     ],
   },
 ];
@@ -47,14 +50,14 @@ export function Footer() {
           {/* Brand Column */}
           <div className="flex flex-col gap-10 lg:col-span-4">
             <div className="flex flex-col gap-6">
-              <div className="flex items-center gap-4">
-                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D3C4B5] text-[#382F24] shadow-[0_20px_40px_rgba(211,196,181,0.3)] transition-all hover:scale-110 hover:rotate-3">
-                    <Heart className="h-6 w-6 fill-current" />
-                 </div>
-                 <span className="text-3xl font-black tracking-tighter font-manrope text-white">
-                   Insighte
-                 </span>
-              </div>
+               <div className="flex items-center gap-4 group">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#8b7ff0] text-[#0a0b14] shadow-[0_20px_40px_rgba(139,127,240,0.3)] transition-all group-hover:scale-110 group-hover:rotate-3">
+                     <Heart className="h-6 w-6 fill-current" />
+                  </div>
+                  <span className="text-3xl font-black tracking-tighter font-dm-serif text-white italic">
+                    Insighte
+                  </span>
+               </div>
               <p className="max-w-sm text-lg leading-relaxed text-zinc-400 font-medium">
                 The world's most trusted sanctuary for families seeking neuro-affirmative clinical excellence.
               </p>

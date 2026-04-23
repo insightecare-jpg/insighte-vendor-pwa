@@ -6,56 +6,7 @@ import { Award, ArrowRight, Sparkles } from "lucide-react";
 import { Zone } from "@/lib/geo";
 import { ProviderCard } from "@/components/ui/provider-card";
 
-const FEATURED_EXPERTS = [
-  {
-    id: "1",
-    name: "Dr. Priya Sharma",
-    provider_type: "Autism Specialist",
-    category: "Autism",
-    specializations: ["ABA Therapy", "Early Intervention"],
-    rating_avg: 4.9, review_count: 124, city: "Bangalore",
-    avatar_url: "/images/experts/autism_specialist.png", experience_years: 12, total_bookings: 340,
-    bio: "Clinical psychologist specializing in neuro-developmental support and family guidance through evidence-based ABA therapy.",
-    consultation_fee: 1500, is_verified: true, mode: "In-Person", session_modes: ["IN_PERSON", "ONLINE"],
-    slug: "priya-sharma",
-  },
-  {
-    id: "2",
-    name: "Mr. Rahul Iyer",
-    provider_type: "Speech Therapist",
-    category: "Speech Therapy",
-    specializations: ["Articulation", "Language Delay"],
-    rating_avg: 4.8, review_count: 98, city: "Mumbai",
-    avatar_url: "/images/experts/speech_therapist.png", experience_years: 8, total_bookings: 210,
-    bio: "Dedicated speech-language pathologist helping children overcome communication hurdles with fun, engaging virtual sessions.",
-    consultation_fee: 1200, is_verified: true, mode: "Online", session_modes: ["ONLINE"],
-    slug: "rahul-iyer",
-  },
-  {
-    id: "3",
-    name: "Dr. Ananya Kapoor",
-    provider_type: "Child Counsellor",
-    category: "Child Counselling",
-    specializations: ["CBT", "Social Skills"],
-    rating_avg: 4.9, review_count: 87, city: "Delhi",
-    avatar_url: "/images/experts/behavioral_specialist.png", experience_years: 10, total_bookings: 290,
-    bio: "Specialist in ADHD management and emotional regulation, helping children build long-term resilience and focus.",
-    consultation_fee: 1800, is_verified: true, mode: "In-Person", session_modes: ["IN_PERSON", "ONLINE"],
-    slug: "ananya-kapoor",
-  },
-  {
-    id: "4",
-    name: "Mrs. Shanti Devi",
-    provider_type: "Special Educator",
-    category: "Special Education",
-    specializations: ["IEP Design", "Learning Support"],
-    rating_avg: 5.0, review_count: 61, city: "Bangalore",
-    avatar_url: "/images/experts/special_educator.png", experience_years: 15, total_bookings: 180,
-    bio: "Senior educator focused on inclusive schooling and personalized curriculum adaptation for diverse learning needs.",
-    consultation_fee: 900, is_verified: true, mode: "In-Person", session_modes: ["IN_PERSON"],
-    slug: "shanti-devi",
-  },
-];
+import { FEATURED_EXPERTS } from "@/lib/constants";
 
 interface TopExpertsProps {
   zone?: Zone | null;
@@ -157,7 +108,7 @@ export function TopExperts({ zone, initialExperts = [] }: TopExpertsProps) {
         </Link>
       </div>
 
-      {/* ── EXPERTS ROW (NETFLIX STYLE) ── */}
+      {/* ── EXPERTS ROW (HIGH-DENSITY GRID) ── */}
       {isShowingFallback && (
         <div className="flex items-center gap-3 mb-8 px-5 py-4 rounded-2xl bg-[#1d9e7510] border border-[#1d9e7530]" role="alert">
           <Sparkles className="w-5 h-5 text-[#5dcaa5]" aria-hidden="true" />

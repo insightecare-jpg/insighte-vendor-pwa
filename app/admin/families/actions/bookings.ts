@@ -18,12 +18,12 @@ export async function scheduleSession(data: {
     const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
-            client_id: data.client_id,
+            parent_id: data.client_id, // Map client_id arg to parent_id column
             child_id: data.child_id,
             provider_id: data.provider_id,
             service_id: data.service_id,
-            scheduled_at: data.scheduled_at,
-            start_time: data.scheduled_at, // For legacy compatibility
+            start_time: data.scheduled_at,
+            end_time: new Date(new Date(data.scheduled_at).getTime() + 60 * 60 * 1000).toISOString(), // Default 1hr
             package_purchase_id: data.package_purchase_id,
             status: 'upcoming'
         })

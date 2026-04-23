@@ -66,4 +66,9 @@ export interface ServicePageData {
     description: string;
   };
   therapists: Partial<Provider>[];
+  metadata?: {
+    title: string;
+    description: string;
+    keywords?: string[];
+  };
 }

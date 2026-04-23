@@ -11,6 +11,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'fraunces': ['var(--font-fraunces)', 'serif'],
+        'dm-sans': ['var(--font-dm-sans)', 'sans-serif'],
+        'serif-display': ['var(--font-dm-serif)', 'serif'],
+      },
       typography: ({ theme }: any) => ({
         insighte: {
           css: {

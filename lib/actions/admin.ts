@@ -86,10 +86,10 @@ export type Family = {
   children: Child[];
 };
 
-export async function getAdminBookings(): Promise<AdminBooking[]> {
+export async function getAdminBookings(filters?: { status?: string, date?: string }): Promise<AdminBooking[]> {
   const supabase = await createClient();
-  // Fetch detailed booking information for admin view
-  const { data, error } = await supabase
+  
+  let query = supabase
     .from('bookings')
     .select(`
       id,
@@ -98,23 +98,36 @@ export async function getAdminBookings(): Promise<AdminBooking[]> {
       status,
       profiles ( full_name ),
       partners ( name ),
-      services ( category )
+      children ( name ),
+      services ( title, category )
     `);
+
+  if (filters?.status && filters.status !== 'all') {
+    if (filters.status === 'upcoming') {
+      query = query.gte('start_time', new Date().toISOString()).eq('status', 'upcoming');
+    } else if (filters.status === 'past') {
+      query = query.lt('start_time', new Date().toISOString());
+    } else {
+      query = query.eq('status', filters.status);
+    }
+  }
+
+  const { data, error } = await query.order('start_time', { ascending: filters?.status === 'upcoming' });
 
   if (error) {
     console.error("Error fetching admin bookings:", error);
     return [];
   }
 
-  // Flatten the response for UI convenience
   return (data || []).map((b: any) => ({
     id: b.id,
     start_time: b.start_time,
     end_time: b.end_time || "N/A",
     status: b.status,
-    child_name: (b.profiles as any)?.full_name || "N/A", // Correctly mapping from profile's name for now
+    child_name: (b.children as any)?.name || "Unknown Learner",
+    parent_name: (b.profiles as any)?.full_name || "Unknown Parent",
     provider_name: (b.partners as any)?.name || "Unassigned",
-    service_category: (b.services as any)?.category || "Specialist Care"
+    service_category: (b.services as any)?.category || (b.services as any)?.title || "Specialist Care"
   }));
 }
 

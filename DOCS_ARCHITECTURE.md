@@ -12,13 +12,13 @@ The core of the platform has shifted from static summary pages to a **Modular En
 Instead of 4 disparate files, the program pages now use a unified **High-Density Template**.
 - **Dynamic Content Slots**: Dedicated blocks for 'Clinical Features', 'Methodology Flow', and 'Benefit Mapping'.
 - **Built-in Conversion**: Integrated WhatsApp and Clinical Consultation triggers into every program page.
-- **Expert Mapping**: A shared Carousel logic that dynamically filters specialists based on the program's context.
+- **Expert Mapping**: A unified High-Density Grid that dynamically filters specialists based on the program's context.
 
-### B. Cinematic Blog Infrastructure
-The blog has been rebuilt to resemble a **Modern Streaming Service (Netflix-Style)**.
-- **Visual Intelligence**: Automated fallback logic for missing media using premium Unsplash identifiers.
-- **Reading Modes**: `BlogPostClient` now supports tri-modal rendering (Light, Sepia, and "Sanctuary" Dark) to enhance neuro-affirmative accessibility.
-- **Multimedia Core**: Native support for YouTube embeds and Podcast iFrames, allowing the blog to function as a learning hub rather than just a text repository.
+### B. Antigravity Blog Infrastructure
+The blog has been rebuilt into a **High-Density Clinical Magazine** layout.
+- **Visual Intelligence**: Sophisticated typography-first layouts using 'DM Serif Display' and weightless spatial containers.
+- **Reading Modes**: `BlogPostClient` supports a distraction-free "Focus Mode" to enhance neuro-affirmative accessibility and cognitive comfort.
+- **Multimedia Core**: Native support for YouTube embeds and Podcast iFrames, ensuring content is delivered with clinical authority and human empathy.
 
 ### C. LMS & Enrollment Layer
 - **Idempotent Seeding**: Introduction of `setup_and_seed.sql` which enforces table creation, RLS safety, and dummy data in a single transaction.

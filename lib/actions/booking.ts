@@ -29,30 +29,39 @@ export async function getProviderSlots(providerId: string, date: string) {
 export async function createBooking(data: {
   provider_id: string;
   client_id?: string;
-  child_id: string;
+  child_id: string | null;
   service_id: string;
   slot_id: string | null;
   start_time: string;
-  end_time: string;
+  end_time?: string;
+  duration_minutes?: number;
   total_price: number;
+  package_purchase_id?: string;
 }) {
   const supabase = await createClient();
   const user = await getEffectiveUser();
 
   if (!user) return { error: "Authorization Protocol Failed: No active session." };
   
+  // Determine end time if not provided
+  const startTime = new Date(data.start_time);
+  const endTime = data.end_time 
+    ? new Date(data.end_time) 
+    : new Date(startTime.getTime() + (data.duration_minutes || 60) * 60 * 1000);
+
   // 1. Create the booking
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
     .insert({
       provider_id: data.provider_id,
-      client_id: user.id === '00000000-0000-0000-0000-000000000000' ? data.client_id : user.id, // Use data.client_id for bypass
+      parent_id: user.id === '00000000-0000-0000-0000-000000000000' ? data.client_id : user.id,
       child_id: data.child_id,
       service_id: data.service_id,
-      start_time: data.start_time,
-      end_time: data.end_time,
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
       total_price: data.total_price,
-      status: 'pending'
+      package_purchase_id: data.package_purchase_id,
+      status: data.package_purchase_id ? 'confirmed' : 'pending'
     })
     .select()
     .single();

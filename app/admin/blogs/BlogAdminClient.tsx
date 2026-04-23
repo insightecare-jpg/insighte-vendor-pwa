@@ -1,12 +1,26 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Save, Image as ImageIcon, Video, Mic, RefreshCw } from "lucide-react";
+import { 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Save, 
+  Image as ImageIcon, 
+  Eye, 
+  ArrowLeft,
+  Search,
+  MoreVertical,
+  RefreshCw,
+  ExternalLink
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function BlogAdminClient() {
   const supabase = createClient();
@@ -14,27 +28,28 @@ export default function BlogAdminClient() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form states
   const [formData, setFormData] = useState({
     title_en: "",
     slug: "",
-    category: "",
-    video_url: "",
-    podcast_url: "",
+    category: "Neurodiversity",
     cover_image_url: ""
   });
 
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image,
+      Image.configure({
+        HTMLAttributes: {
+          class: 'rounded-2xl border border-white/10 my-8 shadow-2xl',
+        },
+      }),
       Link.configure({ openOnClick: false }),
     ],
-    content: '<p>Start writing your rich media blog here...</p>',
+    content: '',
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: 'prose prose-invert max-w-none focus:outline-none min-h-[300px] border border-white/10 p-6 rounded-2xl bg-white/5',
+        class: 'prose prose-invert max-w-none focus:outline-none min-h-[500px] text-xl font-medium leading-relaxed font-serif text-zinc-300',
       },
     },
   });
@@ -56,40 +71,37 @@ export default function BlogAdminClient() {
       title_en: blog.title_en || "",
       slug: blog.slug || "",
       category: blog.category || "Neurodiversity",
-      video_url: blog.video_url || "",
-      podcast_url: blog.podcast_url || "",
       cover_image_url: blog.cover_image_url || ""
     });
     if (editor) {
       editor.commands.setContent(blog.html_content || blog.content_markdown || '');
     }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCreate = () => {
     setEditingId("new");
     setFormData({
-      title_en: "New Insight",
-      slug: `new-insight-${Date.now()}`,
+      title_en: "",
+      slug: "",
       category: "Parenting",
-      video_url: "",
-      podcast_url: "",
       cover_image_url: ""
     });
     if (editor) {
-      editor.commands.setContent('<p>Start writing...</p>');
+      editor.commands.setContent('<p>Tell your story...</p>');
     }
   };
 
   const handleSave = async () => {
     const html_content = editor?.getHTML() || "";
-    // Extremely basic html to markdown for fallback (we should primarily rely on HTML going forward)
-    const content_markdown = editor?.getText() || "";
+    const content_markdown = editor?.getText() || ""; // In a real app, use a proper HTML-to-MD converter
 
     const payload = {
       ...formData,
       html_content,
       content_markdown,
-      status: "published"
+      status: "published",
+      author_name: "Insighte Clinical Team"
     };
 
     if (editingId === "new") {
@@ -102,101 +114,138 @@ export default function BlogAdminClient() {
     fetchBlogs();
   };
 
-  const handleDelete = async (id: string) => {
-    if(window.confirm("Delete this blog?")) {
-      await supabase.from('blog_posts').delete().eq('id', id);
-      fetchBlogs();
-    }
-  };
-
-  const addImageToEditor = () => {
-    const url = window.prompt("Image URL:");
+  const addImage = () => {
+    const url = window.prompt("Paste Image URL:");
     if (url && editor) {
       editor.chain().focus().setImage({ src: url }).run();
     }
   };
 
+  if (editingId) {
+    return (
+      <div className="min-h-screen bg-[#0d0f1a] text-white selection:bg-[#D3C4B5]/30">
+        {/* MEDIUM-STYLE TOP BAR */}
+        <nav className="fixed top-0 left-0 right-0 h-20 bg-[#0d0f1a]/80 backdrop-blur-xl border-b border-white/5 z-50 px-6 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button onClick={() => setEditingId(null)} className="h-10 w-10 rounded-full hover:bg-white/5 flex items-center justify-center transition-all">
+              <ArrowLeft size={20} />
+            </button>
+            <div className="h-6 w-px bg-white/10" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">Drafting Insight</span>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              className="text-zinc-400 hover:text-white"
+              onClick={() => window.open(`/blog/${formData.slug}?preview=true`, '_blank')}
+            >
+              <Eye className="h-4 w-4 mr-2" /> Preview
+            </Button>
+            <Button onClick={handleSave} className="bg-[#BACCB3] text-[#382F24] font-black uppercase tracking-widest text-[10px] px-8 rounded-full hover:bg-white transition-all">
+              Publish
+            </Button>
+          </div>
+        </nav>
+
+        {/* EDITOR AREA */}
+        <main className="pt-32 pb-24 max-w-3xl mx-auto px-6 space-y-12">
+          {/* TITLE INPUT */}
+          <textarea 
+            placeholder="Title"
+            value={formData.title_en}
+            onChange={(e) => setFormData({...formData, title_en: e.target.value})}
+            className="w-full bg-transparent border-none text-6xl font-black font-manrope tracking-tighter focus:ring-0 placeholder:text-zinc-800 resize-none overflow-hidden"
+            rows={1}
+            onInput={(e: any) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+            }}
+          />
+
+          {/* METADATA BAR */}
+          <div className="flex flex-wrap items-center gap-6 border-y border-white/5 py-4">
+             <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">Category:</span>
+                <select 
+                  value={formData.category} 
+                  onChange={e => setFormData({...formData, category: e.target.value})}
+                  className="bg-white/5 border-none text-xs font-bold text-[#D3C4B5] rounded-lg px-3 py-1 focus:ring-0"
+                >
+                  <option value="Neurodiversity">Neurodiversity</option>
+                  <option value="Parenting">Parenting</option>
+                  <option value="Clinical">Clinical</option>
+                  <option value="Education">Education</option>
+                </select>
+             </div>
+             <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">Slug:</span>
+                <input 
+                  value={formData.slug} 
+                  onChange={e => setFormData({...formData, slug: e.target.value})}
+                  className="bg-transparent border-none text-xs font-bold text-zinc-400 p-0 focus:ring-0 w-48"
+                  placeholder="post-url-slug"
+                />
+             </div>
+             <button onClick={addImage} className="ml-auto text-[10px] font-black uppercase tracking-widest text-[#BACCB3] flex items-center gap-2 hover:text-white transition-all">
+                <ImageIcon size={14} /> Add Media
+             </button>
+          </div>
+
+          {/* MAIN EDITOR */}
+          <div className="relative">
+            <EditorContent editor={editor} />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-10 text-white min-h-screen bg-[#0d0f1a]">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-black uppercase tracking-widest text-[#f0ece4]">Blog Management</h1>
-        <button onClick={handleCreate} className="px-6 py-3 bg-[#8b7ff0] text-[#0d0f1a] font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-colors flex items-center gap-2">
-          <Plus size={16} /> Create New
-        </button>
+    <div className="p-6 pt-12 md:p-24 text-white min-h-screen bg-[#0a0b1c] space-y-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="space-y-4">
+           <div className="flex items-center gap-3 text-[#D3C4B5] font-black uppercase tracking-[0.3em] text-[10px]">
+             Wisdom Hub // Editorial
+           </div>
+           <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase italic leading-[0.8]">
+             Blog <br/>
+             <span className="text-[#BACCB3]">Publishing.</span>
+           </h1>
+        </div>
+        <Button onClick={handleCreate} className="h-16 px-10 bg-[#D3C4B5] text-[#382F24] font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-white transition-all shadow-2xl">
+          <Plus className="h-5 w-5 mr-3" /> New Insight
+        </Button>
       </div>
 
-      {editingId ? (
-        <div className="bg-white/5 border border-white/10 p-8 rounded-3xl space-y-6">
-           <div className="flex justify-between items-center border-b border-white/10 pb-4">
-             <h2 className="text-xl font-bold uppercase">{editingId === "new" ? "Create Insight" : "Edit Insight"}</h2>
-             <button onClick={() => setEditingId(null)} className="text-sm font-bold opacity-50 hover:opacity-100">CANCEL</button>
-           </div>
-           
-           <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4">
+        {loading ? (
+          <div className="py-24 flex justify-center"><RefreshCw className="animate-spin text-zinc-700" /></div>
+        ) : (
+          blogs.map((b) => (
+            <div key={b.id} className="group bg-[#111224]/50 border border-white/5 p-8 rounded-[2rem] flex items-center justify-between hover:bg-[#111224] transition-all">
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest opacity-50">Title</label>
-                <input value={formData.title_en} onChange={e => setFormData({...formData, title_en: e.target.value})} className="w-full bg-[#111224] p-4 rounded-xl border border-white/10" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest opacity-50">Slug (URL)</label>
-                <input value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-full bg-[#111224] p-4 rounded-xl border border-white/10" />
-              </div>
-           </div>
-
-           <div className="space-y-2">
-             <label className="text-xs font-bold uppercase tracking-widest opacity-50">Cover Image URL</label>
-             <input value={formData.cover_image_url} onChange={e => setFormData({...formData, cover_image_url: e.target.value})} className="w-full bg-[#111224] p-4 rounded-xl border border-white/10" />
-           </div>
-
-           <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest opacity-50 text-[#8b7ff0] flex items-center gap-2"><Video size={14}/> YouTube Video URL</label>
-                <input placeholder="e.g. https://youtube.com/watch?v=..." value={formData.video_url} onChange={e => setFormData({...formData, video_url: e.target.value})} className="w-full bg-[#111224] p-4 rounded-xl border border-[#8b7ff0]/30" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest opacity-50 text-[#1d9e75] flex items-center gap-2"><Mic size={14}/> Apple Podcast URL</label>
-                <input placeholder="e.g. https://podcasts.apple.com/..." value={formData.podcast_url} onChange={e => setFormData({...formData, podcast_url: e.target.value})} className="w-full bg-[#111224] p-4 rounded-xl border border-[#1d9e75]/30" />
-              </div>
-           </div>
-
-           <div className="space-y-2 !mt-10">
-              <div className="flex justify-between items-center">
-                 <label className="text-xs font-bold uppercase tracking-widest opacity-50">Rich Editor</label>
-                 <button onClick={addImageToEditor} className="text-xs font-bold bg-white/10 px-3 py-1 rounded-md hover:bg-white/20 flex gap-2"><ImageIcon size={14} /> Insert Image</button>
-              </div>
-              <div className="mt-2">
-                <EditorContent editor={editor} />
-              </div>
-           </div>
-
-           <button onClick={handleSave} className="w-full py-4 mt-6 bg-[#8b7ff0] text-[#0d0f1a] font-black uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-[0_0_30px_rgba(139,127,240,0.3)]">
-             Save Insight
-           </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {loading ? (
-             <div className="p-10 flex justify-center"><RefreshCw className="animate-spin opacity-50" /></div>
-          ) : (
-            blogs.map((b) => (
-              <div key={b.id} className="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
-                <div>
-                  <h3 className="text-lg font-bold text-white">{b.title_en}</h3>
-                  <div className="flex items-center gap-4 text-xs mt-2 opacity-50 font-bold uppercase">
-                    <span>{new Date(b.created_at).toLocaleDateString()}</span>
-                    <span>•</span>
-                    <span className="text-[#8b7ff0]">{b.category}</span>
-                  </div>
-                </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => handleEdit(b)} className="p-3 bg-white/10 rounded-xl hover:bg-white hover:text-black transition-colors"><Edit2 size={16} /></button>
-                  <button onClick={() => handleDelete(b.id)} className="p-3 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={16} /></button>
+                  <Badge className="bg-[#BACCB3]/10 text-[#BACCB3] border-none text-[8px] font-black uppercase tracking-widest">{b.category}</Badge>
+                  <span className="text-[10px] font-black text-zinc-700 uppercase">{new Date(b.created_at).toLocaleDateString()}</span>
                 </div>
+                <h3 className="text-2xl font-extrabold font-manrope tracking-tighter text-white">{b.title_en}</h3>
               </div>
-            ))
-          )}
-        </div>
-      )}
+              <div className="flex items-center gap-3">
+                <button onClick={() => handleEdit(b)} className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all border border-white/5">
+                  <Edit2 size={18} />
+                </button>
+                <button onClick={() => window.open(`/blog/${b.slug}`, '_blank')} className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center text-zinc-500 hover:text-[#BACCB3] transition-all border border-white/5">
+                  <ExternalLink size={18} />
+                </button>
+                <button onClick={() => handleDelete(b.id)} className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center text-zinc-500 hover:bg-red-500/20 hover:text-red-500 transition-all border border-white/5">
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

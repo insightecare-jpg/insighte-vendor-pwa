@@ -56,11 +56,11 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                 Book a session with {provider.name.split(' ')[0]} today and start seeing the difference.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href={`/book?provider_id=${provider.id}`} className="cta-primary">
+                <Link href={`/booking/checkout?expertId=${provider.id}`} className="cta-primary">
                   Book Session Now
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                <Link href="/book" className="cta-secondary">
+                <Link href="/booking/checkout" className="cta-secondary">
                   Talk to our Care Team First
                 </Link>
               </div>

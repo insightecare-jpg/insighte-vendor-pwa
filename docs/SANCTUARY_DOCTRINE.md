@@ -38,9 +38,9 @@ The "Sanctuary" aesthetic is a **Dark Monolith** with weightless, glassmorphic a
 ## 🏛️ 3. The Triple-Layer UI Architecture
 
 ### Layer 1: The Public Discovery Interface (The "Storefront")
-- **Style**: Netflix-inspired horizontal scrolling carousels.
-- **Goal**: Discovery and Engagement.
-- **Logic**: Fluid, card-based discovery that works flawlessly on mobile "Thumb Zones".
+- **Style**: High-density, clinical grid systems with spatial depth.
+- **Goal**: Informed choice and Authority.
+- **Logic**: Information-dense cards that prioritize clinical data, experience, and verification badges, optimized for "Thumb Zones".
 
 ### Layer 1.5: Detailed Content & Blog (The "Knowledge Magazine")
 - **Style**: Magazine-inspired, typography-first centered layouts.

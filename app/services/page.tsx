@@ -1,300 +1,272 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import Image from "next/image";
-import { Sparkles, Compass, BookOpen, Brain, Clock, Home, ArrowRight, ShieldCheck, Users, ChevronRight } from "lucide-react";
-import { TestimonialsSection } from "@/components/ui/testimonials-section";
-import { SchoolLogoScroll } from "@/components/ui/school-logo-scroll";
-import { ProgramsGrid } from "@/components/ui/programs-grid";
-import { ExploreVerticals } from "@/components/ui/explore-verticals";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { 
+  Sparkles, 
+  ArrowRight, 
+  HelpCircle,
+  Stethoscope,
+  Users,
+  GraduationCap,
+  Music,
+  Code,
+  UserPlus,
+} from "lucide-react";
+import { UnifiedSearchBar } from "@/components/shared/UnifiedSearchBar";
+import { SERVICE_GROUPS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { SERVICE_REGISTRY } from "@/lib/services/registry";
+import { getProviderCounts } from "@/lib/actions/stats";
 
-export default async function ExploreServices() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-      },
-    }
-  );
+// Map group names to extra descriptors and icons for a premium feel
+const GROUP_DETAILS: Record<string, { icon: any, desc: string, accent: string, delay: number }> = {
+  "Therapy": { 
+    icon: Stethoscope, 
+    desc: "Clinical excellence for neurological milestones and developmental clinical support.",
+    accent: "from-amber-200/20 to-orange-500/5",
+    delay: 0.1
+  },
+  "Counselling": { 
+    icon: Users, 
+    desc: "Emotional wellbeing, behavioral health, and resilient family guidance.",
+    accent: "from-blue-200/20 to-indigo-500/5",
+    delay: 0.2
+  },
+  "Tutoring": { 
+    icon: GraduationCap, 
+    desc: "Neuro-inclusive academic excellence for diverse learning styles.",
+    accent: "from-emerald-200/20 to-teal-500/5",
+    delay: 0.3
+  },
+  "Extra Curricular": { 
+    icon: Music, 
+    desc: "Creative expression, movement, and sensory-friendly physical play.",
+    accent: "from-rose-200/20 to-pink-500/5",
+    delay: 0.4
+  },
+  "Modern Skills": { 
+    icon: Code, 
+    desc: "Digital literacy and cognitive tools for the neuro-diverse future.",
+    accent: "from-cyan-200/20 to-sky-500/5",
+    delay: 0.5
+  },
+  "Specialist Roles": { 
+    icon: UserPlus, 
+    desc: "Dedicated school shadows and home support professionals.",
+    accent: "from-purple-200/20 to-violet-500/5",
+    delay: 0.6
+  }
+};
 
-  const { data: curations } = await supabase.from("curations").select("*");
+export default function ServicesPage() {
+  const router = useRouter();
+  const [stats, setStats] = useState<{ total: number, byService: Record<string, number>, byGroup: Record<string, number> }>({ 
+    total: 0, 
+    byService: {}, 
+    byGroup: {} 
+  });
 
-  const getCurationByTitle = (title: string) => {
-    return curations?.find(c => c.title === title);
+  useEffect(() => {
+    getProviderCounts().then(setStats);
+  }, []);
+
+  const handleSearch = (q: string) => {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    router.push(`/specialists?${params.toString()}`);
   };
 
-  const seedling = getCurationByTitle("The Seedling Sanctuary");
-  const explorer = getCurationByTitle("The Explorer Pathway");
-  const scholar = getCurationByTitle("The Scholar's Retreat");
-  const neuro = getCurationByTitle("Neuro-Diverse Care");
-  const flexible = getCurationByTitle("The Flexible Nest");
-  const guidance = getCurationByTitle("Parental Guidance");
-
   return (
-    <div className="bg-[#111224] text-[#e1e0fa] font-sans selection:bg-[#d3c4b5]/30">
-      <Navbar />
-
-      <main className="pt-32 pb-24 px-6 max-w-7xl mx-auto relative overflow-hidden">
-        {/* Background Accents */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#d3c4b5]/10 rounded-full blur-[120px]"></div>
-        <div className="absolute top-1/2 -right-24 w-80 h-80 bg-[#c8c4db]/10 rounded-full blur-[100px]"></div>
-
-        <header className="mb-24 text-center">
-          <span className="text-[#baccb3] font-semibold tracking-[0.2em] uppercase text-sm mb-4 block">The Growth Journey</span>
-          <h1 className="text-6xl md:text-8xl font-manrope font-extrabold tracking-tighter text-[#e1e0fa] leading-none mb-8 italic uppercase">
-            Your Child's <br/><span className="text-zinc-600">Evolving Pathway</span>
-          </h1>
-          <p className="text-[#c8c5cd] text-xl max-w-2xl mx-auto leading-relaxed italic opacity-70">
-            A sanctuary designed to transition with your family. Explore our vertical roadmap of specialized care and developmental programs.
-          </p>
-        </header>
-
-        {/* School Partnership Logo Scroll */}
-        <section className="mb-32">
-          <SchoolLogoScroll />
-        </section>
-
-        {/* Explore Verticals Section */}
-        <section className="mb-32 relative">
-          <div className="flex flex-col items-center text-center mb-16 space-y-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#BACCB3] italic">Service Spectrum</span>
-            <h2 className="text-4xl md:text-7xl font-manrope font-extrabold tracking-tighter text-[#e1e0fa] leading-none mb-4 italic uppercase">
-              Browse <span className="text-zinc-600">Verticals</span>
-            </h2>
-            <p className="text-zinc-500 max-w-xl text-sm font-medium italic mx-auto">
-              Choose a clinical or educational domain to filter our network of specialists and programs tailored for your child's stage.
-            </p>
-          </div>
-          <ExploreVerticals />
-        </section>
-
-        {/* Vertical Pathway Layout */}
-        <div className="relative">
-          {/* Central Line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-transparent via-[#d3c4b5]/80 to-transparent opacity-20 hidden lg:block"></div>
+    <div className="min-h-screen">
+      <main className="pt-32 pb-20 overflow-x-hidden">
+        
+        {/* ── HERO SECTION ── */}
+        <section className="max-w-7xl mx-auto px-6 mb-24 relative">
+          {/* Background Nebula */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-indigo-500/10 blur-[120px] rounded-full -z-10 animate-nebula" />
           
-          <div className="space-y-48 relative">
+          <div className="text-center">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 mb-6 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-[0.2em] uppercase text-indigo-300"
+            >
+              <Sparkles className="w-3 h-3" />
+              The Care Spectrum
+            </motion.div>
+
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="font-dm-serif text-5xl md:text-8xl mb-8 leading-[1]"
+            >
+              Support that <br />
+              <span className="text-indigo-400 italic">evolves with them.</span>
+            </motion.h1>
             
-            {/* Stage 1: The Seedling (Early Years) */}
-            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
-              <div className="w-full lg:w-1/2 order-2 lg:order-1 lg:text-right">
-                <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-[#baccb3]/10 text-[#baccb3] mb-6 lg:ml-auto">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Early Foundation</span>
-                </div>
-                <h2 className="text-5xl md:text-7xl font-manrope font-bold text-[#e1e0fa] mb-6 tracking-tighter">The Seedling Sanctuary</h2>
-                <p className="text-[#c8c5cd] text-lg mb-8 leading-relaxed max-w-lg lg:ml-auto italic opacity-80">
-                  Focused on sensory exploration and secure attachment. Our infant-led approach ensures your little one feels the warmth of a secondary home.
-                </p>
-                <div className="flex flex-wrap gap-3 lg:justify-end mb-10">
-                  {["Infant Care", "Sensory Play", "Nurture Focus"].map(tag => (
-                    <span key={tag} className="px-5 py-2.5 rounded-full bg-[#191A2D] text-zinc-400 text-[10px] font-black uppercase tracking-widest border border-white/5">{tag}</span>
-                  ))}
-                </div>
-                {seedling && (
-                  <Link href={`/checkout/curation/${seedling.id}`}>
-                    <button className="bg-[#D3C4B5] text-[#382F24] px-10 py-5 rounded-full font-black uppercase tracking-widest text-[10px] hover:shadow-2xl transition-all active:scale-95 flex items-center gap-3 lg:ml-auto">
-                      Unlock Pathway <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </Link>
-                )}
-              </div>
-              
-              <div className="relative z-10 w-20 h-20 flex-shrink-0 flex items-center justify-center bg-[#111224] border-2 border-[#d3c4b5]/30 rounded-full shadow-[0_0_60px_rgba(211,196,181,0.1)] hidden lg:flex">
-                <span className="text-[#d3c4b5] font-black italic">01</span>
-              </div>
-              
-              <div className="w-full lg:w-1/2 order-1 lg:order-3">
-                <div className="aspect-[16/10] rounded-[40px] overflow-hidden shadow-2xl relative group bg-[#1d1e31] border border-white/5">
-                  <Image 
-                    src="/services/seedling-sanctuary.png" 
-                    alt="Seedling environment"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover grayscale-[40%] group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111224]/80 to-transparent opacity-60"></div>
-                  <div className="absolute bottom-8 left-8">
-                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D3C4B5] mb-1 opacity-70">Starting From</p>
-                     <p className="text-4xl font-black font-manrope">₹{seedling?.price.toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed"
+            >
+              Explore our unified categories of specialized support. From clinical therapy to academic guidance, find the perfect match for your child&apos;s specific journey.
+            </motion.p>
 
-            {/* Stage 2: The Explorer (Toddler) */}
-            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
-              <div className="w-full lg:w-1/2 order-1">
-                <div className="aspect-[16/10] rounded-[40px] overflow-hidden shadow-2xl relative group bg-[#1d1e31] border border-white/5">
-                  <Image 
-                    src="/services/explorer-pathway.png" 
-                    alt="Explorer pathway"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover grayscale-[40%] group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111224]/80 to-transparent opacity-60"></div>
-                  <div className="absolute bottom-8 right-8 text-right">
-                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D3C4B5] mb-1 opacity-70">Transition Invest</p>
-                     <p className="text-4xl font-black font-manrope">₹{explorer?.price.toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="relative z-10 w-20 h-20 flex-shrink-0 flex items-center justify-center bg-[#111224] border-2 border-[#baccb3]/30 rounded-full shadow-[0_0_60px_rgba(186,204,179,0.1)] hidden lg:flex">
-                <span className="text-[#baccb3] font-black italic">02</span>
-              </div>
-              
-              <div className="w-full lg:w-1/2 order-2">
-                <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-[#d3c4b5]/10 text-[#d3c4b5] mb-6">
-                  <Compass className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Active Discovery</span>
-                </div>
-                <h2 className="text-5xl md:text-7xl font-manrope font-bold text-[#e1e0fa] mb-6 tracking-tighter">The Explorer Pathway</h2>
-                <p className="text-[#c8c5cd] text-lg mb-8 leading-relaxed max-w-lg italic opacity-80">
-                  Where curiosity meets capability. We encourage independent problem solving and social integration through guided play and artistic expression.
-                </p>
-                <div className="flex flex-wrap gap-3 mb-10">
-                  {["Social Skills", "Artistic Flow", "Outdoor Discovery"].map(tag => (
-                    <span key={tag} className="px-5 py-2.5 rounded-full bg-[#191A2D] text-zinc-400 text-[10px] font-black uppercase tracking-widest border border-white/5">{tag}</span>
-                  ))}
-                </div>
-                {explorer && (
-                  <Link href={`/checkout/curation/${explorer.id}`}>
-                    <button className="bg-transparent border border-white/20 text-white hover:border-[#D3C4B5] hover:text-[#D3C4B5] px-10 py-5 rounded-full font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center gap-3">
-                      Begin Journey <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            {/* Stage 3: The Scholar (Preschool) */}
-            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
-              <div className="w-full lg:w-1/2 order-2 lg:order-1 lg:text-right">
-                <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-[#c8c4db]/10 text-[#c8c4db] mb-6 lg:ml-auto">
-                  <BookOpen className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Cognitive Ascent</span>
-                </div>
-                <h2 className="text-5xl md:text-7xl font-manrope font-bold text-[#e1e0fa] mb-6 tracking-tighter">The Scholar's Retreat</h2>
-                <p className="text-[#c8c5cd] text-lg mb-8 leading-relaxed max-w-lg lg:ml-auto italic opacity-80">
-                  Preparing the mind for future horizons. Our curriculum blends academic readiness with emotional intelligence, ensuring a confident transition to school.
-                </p>
-                <div className="flex flex-wrap gap-3 lg:justify-end mb-10">
-                  {["Literacy Roots", "Logical Logic", "Leadership Labs"].map(tag => (
-                    <span key={tag} className="px-5 py-2.5 rounded-full bg-[#191A2D] text-zinc-400 text-[10px] font-black uppercase tracking-widest border border-white/5">{tag}</span>
-                  ))}
-                </div>
-                {scholar && (
-                  <Link href={`/checkout/curation/${scholar.id}`}>
-                    <button className="bg-[#c8c4db] text-[#1d1e31] px-10 py-5 rounded-full font-black uppercase tracking-widest text-[10px] hover:shadow-2xl transition-all active:scale-95 flex items-center gap-3 lg:ml-auto">
-                      Initiate Ascent <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </Link>
-                )}
-              </div>
-              
-              <div className="relative z-10 w-20 h-20 flex-shrink-0 flex items-center justify-center bg-[#111224] border-2 border-[#c8c4db]/30 rounded-full shadow-[0_0_60px_rgba(200,196,219,0.1)] hidden lg:flex">
-                <span className="text-[#c8c4db] font-black italic">03</span>
-              </div>
-              
-              <div className="w-full lg:w-1/2 order-1 lg:order-3">
-                <div className="aspect-[16/10] rounded-[40px] overflow-hidden shadow-2xl relative group bg-[#1d1e31] border border-white/5">
-                  <Image 
-                    src="/services/scholar-retreat.png" 
-                    alt="Scholar environment"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover grayscale-[40%] group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111224]/80 to-transparent opacity-60"></div>
-                  <div className="absolute bottom-8 left-8">
-                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D3C4B5] mb-1 opacity-70">Peak Support</p>
-                     <p className="text-4xl font-black font-manrope">₹{scholar?.price.toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="max-w-[720px] mx-auto shadow-2xl shadow-indigo-500/10"
+            >
+              <UnifiedSearchBar 
+                onSearch={handleSearch}
+                onQueryChange={() => {}} 
+                placeholder="Search by diagnosis, support need, or service..."
+              />
+            </motion.div>
           </div>
-        </div>
-
-        {/* Featured Programs Grid - Maven Style */}
-        <section className="mt-64 relative">
-          {/* Section Divider */}
-          <div className="absolute -top-32 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-          
-          <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-6">
-            <div className="max-w-xl">
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D3C4B5] mb-4 block">Specialized Verticals</span>
-              <h3 className="text-6xl font-manrope font-extrabold text-[#e1e0fa] mb-6 tracking-tighter italic uppercase">Clinical <br/> <span className="text-zinc-600">Programs</span></h3>
-              <p className="text-[#c8c5cd] leading-relaxed italic opacity-70">Highly targeted clinical pathways designed for specific developmental milestones and therapeutic outcomes.</p>
-            </div>
-            <Link href="/programs" className="flex items-center gap-3 text-[#d3c4b5] font-black uppercase tracking-widest text-[10px] hover:gap-6 transition-all border-b border-[#d3c4b5]/20 pb-2">
-              View All Programs <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-
-          <ProgramsGrid />
         </section>
 
-        {/* Social Proof: Testimonials */}
-        <section className="mt-64 relative">
-          <div className="absolute -top-32 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-          <TestimonialsSection />
+        {/* ── SERVICE CATEGORIES ── */}
+        <section className="max-w-7xl mx-auto px-6 mb-32">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {SERVICE_GROUPS.map((group) => {
+              const details = GROUP_DETAILS[group.name] || { icon: Stethoscope, desc: "", accent: "", delay: 0.1 };
+              const Icon = details.icon;
+              
+              return (
+                <motion.div
+                  key={group.name}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: details.delay }}
+                  className="group relative flex flex-col bg-white/[0.02] border border-white/[0.05] rounded-[2.5rem] p-10 transition-all duration-700 hover:bg-white/[0.04] hover:border-white/10 hover:-translate-y-2 overflow-hidden"
+                >
+                  {/* Subtle Gradient Backdrop */}
+                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-700 -z-10", details.accent)} />
+                  
+                  <div className="mb-10 flex items-start justify-between">
+                    <div 
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"
+                    >
+                      <Icon className="w-8 h-8 text-indigo-400" />
+                    </div>
+                    {stats.byGroup[group.name] > 0 && (
+                      <span className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-black uppercase tracking-widest text-indigo-300 rounded-full">
+                        {stats.byGroup[group.name]} EXPERTS
+                      </span>
+                    )}
+                  </div>
+
+                  <h2 className="font-dm-serif text-3xl md:text-4xl text-white mb-4 leading-tight group-hover:text-indigo-300 transition-colors">
+                    {group.name}
+                  </h2>
+                  
+                  <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-grow">
+                    {details.desc}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 mb-10">
+                    {group.services.map((service) => {
+                      const slug = service.toLowerCase().replace(/\s+/g, '-');
+                      const hasPage = !!SERVICE_REGISTRY[slug];
+                      
+                      const content = (
+                        <span 
+                          key={service}
+                          className={cn(
+                            "px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-medium transition-colors",
+                            hasPage ? "text-indigo-300 border-indigo-500/20 hover:bg-indigo-500/10 hover:border-indigo-500/40" : "text-slate-400"
+                          )}
+                        >
+                          {service}
+                        </span>
+                      );
+
+                      if (hasPage) {
+                        return (
+                          <Link key={service} href={`/services/${slug}`}>
+                            {content}
+                          </Link>
+                        );
+                      }
+
+                      return content;
+                    })}
+                  </div>
+
+                  <button 
+                    onClick={() => router.push(`/specialists?category=${encodeURIComponent(group.name)}`)}
+                    className="flex items-center gap-3 text-xs font-black tracking-[0.15em] uppercase text-indigo-400 hover:text-indigo-300 group/link transition-all cursor-pointer"
+                  >
+                    View Specialists
+                    <ArrowRight className="w-4 h-4 group-hover/link:translate-x-2 transition-transform" />
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="mt-64 relative rounded-[60px] overflow-hidden p-12 md:p-32 text-center border border-white/5">
-          <div className="absolute inset-0 z-0">
-             <div className="absolute inset-0 bg-[#0b0c1f] opacity-90"></div>
-             <Image 
-              src="/services/cta-bg.png" 
-              alt="Nature background"
-              fill
-              sizes="100vw"
-              className="object-cover grayscale opacity-20" 
-            />
-            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#111224] to-transparent"></div>
-          </div>
-          
-          <div className="relative z-10 max-w-4xl mx-auto space-y-12">
-            <div className="space-y-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#BACCB3]">The Final Signal</span>
-              <h2 className="text-6xl md:text-9xl font-manrope font-extrabold text-[#e1e0fa] tracking-tighter leading-none italic uppercase">
-                Begin Their <br/> <span className="text-[#baccb3]">Ascent</span> Today
-              </h2>
-            </div>
-            
-            <p className="text-xl text-zinc-400 italic font-medium leading-relaxed max-w-2xl mx-auto">
-              Schedule a private tour of our sanctuary and see how our pathways align with your child's unique potential.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row justify-center gap-8 pt-8">
-              <Link href="/book">
-                 <button className="bg-[#d3c4b5] text-[#382f24] px-14 py-6 rounded-full font-black uppercase tracking-widest text-xs hover:shadow-[0_0_50px_rgba(211,196,181,0.3)] transition-all active:scale-95">
-                   Book a Consultation
-                 </button>
-              </Link>
-              <Link href="/specialists">
-                 <button className="bg-white/5 backdrop-blur-xl text-white px-14 py-6 rounded-full font-black uppercase tracking-widest text-xs border border-white/10 hover:bg-white/10 transition-all active:scale-95">
-                   View Our Architects
-                 </button>
-              </Link>
-            </div>
+        {/* ── LIVE DATA TICKER ── */}
+        <section className="bg-white/[0.01] border-y border-white/[0.05] py-12 relative overflow-hidden mb-32">
+          <div className="flex items-center gap-12 animate-marquee">
+             {[...Array(10)].map((_, i) => (
+               <div key={i} className="flex items-center gap-8 text-sm font-bold uppercase tracking-[0.25em] text-slate-500 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                  {stats.total} Experts Available Platform-wide
+                  {Object.entries(stats.byService)
+                    .filter(([name]) => ["Shadow Teacher", "Speech Therapy", "Occupational Therapy", "Special Educator"].includes(name))
+                    .map(([name, count]) => (
+                      <React.Fragment key={name}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                        {count} {name}s Available
+                      </React.Fragment>
+                    ))}
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  Average Response Time: 45m
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                  Verified Neuro-Inclusive care
+               </div>
+             ))}
           </div>
         </section>
+
+        {/* ── GUIDED INTAKE CTA ── */}
+        <section className="max-w-5xl mx-auto px-6 pb-24">
+           <motion.div 
+             initial={{ opacity: 0, scale: 0.95 }}
+             whileInView={{ opacity: 1, scale: 1 }}
+             viewport={{ once: true }}
+             className="relative overflow-hidden bg-gradient-to-br from-indigo-500/10 via-indigo-500/[0.02] to-transparent border border-indigo-500/20 rounded-[4rem] p-16 md:p-24 text-center"
+           >
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500/30 blur-[150px] -z-10 rounded-full" />
+              
+              <HelpCircle className="w-16 h-16 text-indigo-500 mx-auto mb-8 animate-bounce-slow" />
+              <h3 className="font-dm-serif text-4xl md:text-6xl text-white mb-6">
+                Still unsure on the <br />
+                <span className="italic text-indigo-300">right path?</span>
+              </h3>
+              <p className="text-slate-400 text-lg max-w-xl mx-auto mb-12 leading-relaxed font-['DM_Sans']">
+                Take our clinical intake guide. We&apos;ll analyze your child&apos;s support needs and hand-pick the most compatible specialists for you.
+              </p>
+              
+              <button 
+                onClick={() => router.push("/book?service=general-consultation")}
+                className="inline-flex h-16 items-center justify-center px-12 rounded-full bg-[#EF9F27] text-black font-black uppercase tracking-[0.1em] text-sm hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-orange-500/20 cursor-pointer"
+              >
+                Launch Care Guide
+              </button>
+           </motion.div>
+        </section>
+
       </main>
-
-      <Footer />
     </div>
   );
 }

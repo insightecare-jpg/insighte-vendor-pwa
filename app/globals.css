@@ -289,15 +289,21 @@
   animation: glowPulse 6s infinite ease-in-out;
 }
 
-@keyframes scrollInfiniteFast {
+@keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
 }
 
 .animate-scroll-infinite-fast {
   display: flex;
   width: max-content;
-  animation: scrollInfiniteFast 40s linear infinite;
+  animation: marquee 20s linear infinite;
 }
 
 @keyframes shimmer {

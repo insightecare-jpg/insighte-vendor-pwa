@@ -27,10 +27,7 @@ export function ArticleHero({ post }: ArticleHeroProps) {
           <Sparkles size={10} /> {post.category || 'Expert Wisdom'}
         </div>
         
-        <h1 
-          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-          className="text-[clamp(1.75rem,5vw,2.75rem)] md:text-[clamp(2rem,5vw,3rem)] leading-[1.1] tracking-tight text-white uppercase italic"
-        >
+        <h1 className="text-[clamp(1.75rem,5vw,2.75rem)] md:text-[clamp(2rem,5vw,3rem)] leading-[1.1] tracking-tight text-white uppercase italic font-dm-serif">
           {post.title_en}
         </h1>
 

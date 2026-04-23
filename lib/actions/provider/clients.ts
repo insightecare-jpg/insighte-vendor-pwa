@@ -33,8 +33,8 @@ export async function getRegistry() {
       .select(`
         id,
         status,
-        learner_id:children(id, name, age, diagnosis, city, location),
-        parent_id:parents(id, name, email)
+        learner:children(id, name, age, city),
+        parent:profiles(id, full_name, email)
       `)
       .eq('provider_id', partner.id);
 
@@ -43,17 +43,17 @@ export async function getRegistry() {
     // 3. Flatten/Deduplicate Identities
     const learnerMap = new Map();
     bookings?.forEach((b: any) => {
-      const learner = b.learner_id as any;
-      const parent = b.parent_id as any;
+      const learner = b.learner as any;
+      const parent = b.parent as any;
       if (learner && !learnerMap.has(learner.id)) {
         learnerMap.set(learner.id, {
           id: learner.id,
           full_name: learner.name,
           email: parent?.email || 'N/A',
-          category: learner.diagnosis || 'Neuro-Developmental',
+          parent_name: parent?.full_name || 'N/A',
           location: learner.city || 'Bangalore',
           status: 'ACTIVE',
-          sessions_count: bookings.filter((x: any) => (x.learner_id as any)?.id === learner.id).length
+          sessions_count: bookings.filter((x: any) => (x.learner as any)?.id === learner.id).length
         });
       }
     });

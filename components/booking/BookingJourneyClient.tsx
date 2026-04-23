@@ -97,37 +97,36 @@ export default function BookingJourneyClient({ services, childrenData, providers
     }
 
     // IF GUEST: Capture details and simulate reservation/payment
-    if (isGuest) {
-       if (!formData.guestEmail || !formData.guestName) {
-          toast.error("Protocol Error: Email and Name required for Guest Authorization.");
-          setIsSubmitting(false);
-          setStep(4); // Force to guest info step
-          return;
-       }
-
-       toast.success("Moment Reserved! Institutional Receipt being generated...");
-       // Store guest booking in session or temp table
-       router.push(`/book/confirmation?email=${encodeURIComponent(formData.guestEmail)}&name=${encodeURIComponent(formData.guestName)}`);
-       return;
-    }
-
-    const res = await createBooking({
-       provider_id: provider.id,
-       child_id: formData.childId,
-       service_id: formData.serviceId,
-       slot_id: formData.slotId || null, 
-       start_time: selectedSlot ? selectedSlot.start_time : new Date(formData.date + "T14:00:00Z").toISOString(),
-       end_time: selectedSlot ? selectedSlot.end_time : new Date(formData.date + "T15:00:00Z").toISOString(),
-       total_price: selectedService.price
-    });
-
-    if (res.success) {
-       toast.success("Protocol Authorized. Check Sanctuary Dashboard.");
-       router.push("/parent/dashboard");
-    } else {
-       toast.error("Institutional Sync Failure: " + res.error);
-    }
-    setIsSubmitting(false);
+     if (isGuest) {
+        if (!formData.guestEmail || !formData.guestName) {
+           toast.error("Identity Registry Incomplete: We need a name and email to synchronize your guest protocol safely.");
+           setIsSubmitting(false);
+           return;
+        }
+ 
+        toast.success("Moment Captured! We're preparing your institutional access...");
+        // Store guest booking in session or temp table
+        router.push(`/booking/confirmation?email=${encodeURIComponent(formData.guestEmail)}&name=${encodeURIComponent(formData.guestName)}`);
+        return;
+     }
+ 
+     const res = await createBooking({
+        provider_id: provider.id,
+        child_id: formData.childId,
+        service_id: formData.serviceId,
+        slot_id: formData.slotId || null, 
+        start_time: selectedSlot ? selectedSlot.start_time : new Date(formData.date + "T14:00:00Z").toISOString(),
+        end_time: selectedSlot ? selectedSlot.end_time : new Date(formData.date + "T15:00:00Z").toISOString(),
+        total_price: selectedService.price
+     });
+ 
+     if (res.success) {
+        toast.success("Protocol Authorized. Your Sanctuary Dashboard is now synchronized.");
+        router.push("/parent/dashboard");
+     } else {
+        toast.error("Sync Interrupted: We couldn't authorize this protocol right now. No changes have been made to your account. Feel free to try again.");
+     }
+     setIsSubmitting(false);
   };
 
   const nextStep = () => setStep(prev => prev + 1);

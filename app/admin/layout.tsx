@@ -18,7 +18,18 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/auth/login"); // or wherever the login page is
+  };
+
   return (
     <div className="flex min-h-screen bg-[#111224] text-white selection:bg-[#D3C4B5]/30">
        <AdminSidebar />
@@ -72,7 +83,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                          <Settings className="h-4 w-4" /> Settings
                       </DropdownMenuItem>
                       <div className="h-[1px] bg-white/5 my-2" />
-                      <DropdownMenuItem className="h-12 rounded-2xl hover:bg-white/5 cursor-pointer flex gap-3 text-sm font-bold text-red-400">
+                      <DropdownMenuItem 
+                        className="h-12 rounded-2xl hover:bg-white/5 cursor-pointer flex gap-3 text-sm font-bold text-red-400"
+                        onClick={handleSignOut}
+                      >
                          Sign Out
                       </DropdownMenuItem>
                    </DropdownMenuContent>

@@ -48,24 +48,64 @@ export async function getProviderById(identifier: string) {
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
 
-  const { data, error } = await supabase
-    .from('partners')
-    .select('*, services(*), reviews(*), slots(*)')
-    .eq(isUuid ? 'id' : 'slug', identifier)
-    .maybeSingle();
+  try {
+    // 1. Fetch the Primary Partner Record
+    const { data: partner, error } = await supabase
+      .from('partners')
+      .select('*')
+      .eq(isUuid ? 'id' : 'slug', identifier)
+      .maybeSingle();
 
-  if (error) {
-    console.error(`Error fetching partner ${identifier}:`, error.message);
+    if (error) {
+      console.error(`Critical error fetching partner ${identifier}:`, error.message);
+      return null;
+    }
+
+    if (!partner) {
+      // 1b. Fallback to hardcoded Featured Experts if not in DB (Vanguard Doctrine)
+      const { FEATURED_EXPERTS } = await import("@/lib/constants");
+      const fallback = FEATURED_EXPERTS.find(e => e.slug === identifier || e.id === identifier);
+      
+      if (!fallback) return null;
+      
+      return {
+        ...fallback,
+        services: [],
+        reviews: [],
+        slots: [],
+        provider_outcomes: [],
+        provider_fit_items: []
+      };
+    }
+
+    // 2. Parallelized Fetching of Related Data (Decoupled from joined selects to handle schema mismatches)
+    const [
+      { data: services },
+      { data: reviews },
+      { data: slots },
+      { data: outcomes },
+      { data: fitItems }
+    ] = await Promise.all([
+      supabase.from('services').select('*').eq('partner_id', partner.id),
+      supabase.from('reviews').select('*').eq('partner_id', partner.id),
+      supabase.from('slots').select('*').eq('partner_id', partner.id).eq('status', 'available'),
+      supabase.from('provider_outcomes').select('*').eq('partner_id', partner.id).order('order_index', { ascending: true }),
+      supabase.from('provider_fit_items').select('*').eq('partner_id', partner.id).order('order_index', { ascending: true })
+    ]);
+
+    // 3. Assemble and Harden the final object
+    return {
+      ...partner,
+      services: services || [],
+      reviews: reviews || [],
+      slots: slots || [],
+      provider_outcomes: outcomes || [],
+      provider_fit_items: fitItems || []
+    };
+  } catch (err) {
+    console.error("Critical architectural failure in getProviderById:", err);
     return null;
   }
-
-  if (!data) return null;
-
-  // Filter slots to show only available ones by default
-  return {
-    ...data,
-    slots: (data.slots || []).filter((s: any) => s.status === 'available')
-  };
 }
 
 /**
@@ -78,17 +118,17 @@ export async function seedInitialProviders() {
 
   const initialPartners = [
     {
-      name: "Dr. Priya Sharma",
-      category: "Therapy",
+      name: "Dr. Jyoti B.",
+      category: "Autism",
       bio: "Clinical psychologist specializing in neuro-developmental support and family guidance through evidence-based ABA therapy.",
-      slug: "priya-sharma",
+      slug: "jyoti-b",
       verified: true
     },
     {
-      name: "Mr. Rahul Iyer",
-      category: "Speech Therapy",
-      bio: "Dedicated speech-language pathologist helping children overcome communication hurdles with fun, engaging virtual sessions.",
-      slug: "rahul-iyer",
+      name: "Meera Nayak",
+      category: "Behavior Therapy",
+      bio: "Behavioral analyst focusing on compassionate, neuro-affirming strategies for social-emotional growth.",
+      slug: "meera-nayak",
       verified: true
     }
   ];

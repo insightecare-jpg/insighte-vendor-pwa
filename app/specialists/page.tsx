@@ -3,20 +3,30 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import {
   Search, SlidersHorizontal, X, MapPin, User,
   Video, ChevronDown, Sparkles, Globe, HelpCircle,
+  ShieldCheck, ArrowRight, Zap, Target
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn, normalizeCategory } from "@/lib/utils";
 import { ProviderCard } from "@/components/ui/provider-card";
 import { SERVICE_GROUPS, TOP_LEVEL_FILTERS } from "@/lib/constants";
+import { UnifiedSearchBar } from "@/components/shared/UnifiedSearchBar";
+import { ZONES } from "@/lib/geo";
 import { Suspense } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+
+// ─── AMBIENT BACKGROUND (Unified with home) ───
+const AmbientCanvas = () => (
+  <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#8b7ff0]/5 blur-[200px] rounded-full" />
+    <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#5dcaa5]/3 blur-[200px] rounded-full" />
+    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] mix-blend-overlay" />
+  </div>
+);
 
 // ─── URL PARAM CATEGORY MAP ───────────────────────────────────────────────────
-// Maps arbitrary URL params (from homepage suggestions) → normalised category strings
 const CATEGORY_PARAM_MAP: Record<string, string> = {
   "speech therapy":           "Speech Therapy",
   "speech+therapy":           "Speech Therapy",
@@ -48,6 +58,7 @@ const AGE_PARAM_MAP: Record<string, string> = {
   "adolescents":    "Adolescents (10+)",
   "teen":           "Adolescents (10+)",
   "adult":          "Young Adults (19+)",
+  "adults":         "Young Adults (19+)",
 };
 
 const AGE_GROUPS = [
@@ -55,31 +66,19 @@ const AGE_GROUPS = [
   "Adolescents (10+)", "Young Adults (19+)",
 ];
 
-const SUBJECTS = [
-  "English", "Maths", "Science", "Social Studies", "Hindi", "Kannada",
-  "French", "German", "Pre-Primary", "Junior", "High School", "Graduation",
-  "CBSE", "ICSE", "IB", "State Board", "Cambridge board", "NIOS", "Homework Support",
-];
-
 const CITIES = ["Bangalore", "Delhi", "Mumbai", "Kochi", "Trivandrum", "Chennai", "Hyderabad", "Pune", "Online"];
 
-// ─── LABEL FOR A FILTER TAG ────────────────────────────────────────────────────
-function labelFor(key: string, val: string): string {
-  if (key === "city") return `📍 ${val}`;
-  if (key === "age") return `🧒 ${val}`;
-  if (key === "category") return `🔖 ${val}`;
-  if (key === "q") return `🔍 "${val}"`;
-  if (key === "condition") return `🩺 ${val}`;
-  if (key === "mode") return val === "online" ? "💻 Online" : `📍 ${val}`;
-  return val;
-}
-
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function SpecialistsPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: "100vh", background: "#0d0f1a", color: "#e8e2d8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontSize: 16, color: "#8a8591" }}>Loading specialists...</p>
+      <div className="min-h-screen bg-[#0a0b14] flex items-center justify-center">
+        <motion.div 
+          animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="text-[#8b7ff0] font-black text-[10px] uppercase tracking-[0.4em]"
+        >
+          Aligning Clinical Data...
+        </motion.div>
       </div>
     }>
       <SpecialistsContent />
@@ -91,13 +90,13 @@ function SpecialistsContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const shouldReduceMotion = useReducedMotion();
 
   const [providers, setProviders] = useState<any[]>([]);
   const [onlineProviders, setOnlineProviders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialised, setInitialised] = useState(false);
 
-  // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>([]);
@@ -106,7 +105,6 @@ function SpecialistsContent() {
   const [selectedMode, setSelectedMode] = useState<"all" | "offline" | "online">("all");
   const [showFilters, setShowFilters] = useState(false);
 
-  // ── Read URL params on mount (single source of truth) ──────────────────────
   useEffect(() => {
     const q         = searchParams.get("q") || searchParams.get("query") || "";
     const city      = searchParams.get("city") || searchParams.get("location") || "All";
@@ -121,7 +119,6 @@ function SpecialistsContent() {
     if (city && city !== "All") setSelectedCity(city);
     if (modeRaw === "online") setSelectedMode("online");
 
-    // Category resolution
     const cats: string[] = [];
     if (catRaw) {
       const resolved = CATEGORY_PARAM_MAP[catRaw.toLowerCase()] || catRaw;
@@ -133,13 +130,11 @@ function SpecialistsContent() {
     }
     if (cats.length > 0) setSelectedCategories(cats);
 
-    // Sub-modules
     const subs: string[] = [];
     if (typeRaw)  subs.push(typeRaw.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
     if (boardRaw) subs.push(boardRaw);
     if (subs.length > 0) setSelectedSubModules(subs);
 
-    // Age group
     if (ageRaw) {
       const resolved = AGE_PARAM_MAP[ageRaw.toLowerCase()] || ageRaw;
       setSelectedAgeGroups([resolved]);
@@ -148,7 +143,6 @@ function SpecialistsContent() {
     setInitialised(true);
   }, [searchParams]);
 
-  // ── Fetch whenever filters change (after init) ─────────────────────────────
   useEffect(() => {
     if (!initialised) return;
     const handler = setTimeout(() => { fetchProviders(); }, 300);
@@ -160,7 +154,6 @@ function SpecialistsContent() {
     const specs = [...selectedSubModules, ...selectedCategories];
     const targetCity = selectedCity === "All" ? null : selectedCity;
 
-    // Determine mode filtering
     const modes: string[] | null =
       selectedMode === "online"  ? ["Online"] :
       selectedMode === "offline" ? ["Home", "In-Clinic"] :
@@ -181,8 +174,6 @@ function SpecialistsContent() {
     } else {
       setProviders(data || []);
 
-      // If city-filtered search returns 0 and we're not already in online mode,
-      // silently fetch online providers as a fallback
       if (targetCity && (data || []).length === 0 && selectedMode !== "online") {
         const { data: onlineData } = await supabase.rpc("search_partners", {
           search_term:      searchQuery,
@@ -200,42 +191,44 @@ function SpecialistsContent() {
     setLoading(false);
   }
 
-  // ── Active filter tags (from state → shown as dismissible pills) ────────────
-  type FilterTag = { id: string; label: string; onRemove: () => void };
-  const activeTags: FilterTag[] = useMemo(() => {
-    const tags: FilterTag[] = [];
-    if (searchQuery) tags.push({ id: "q", label: labelFor("q", searchQuery), onRemove: () => setSearchQuery("") });
-    if (selectedCity !== "All") tags.push({ id: "city", label: labelFor("city", selectedCity), onRemove: () => setSelectedCity("All") });
-    if (selectedMode !== "all") tags.push({ id: "mode", label: labelFor("mode", selectedMode), onRemove: () => setSelectedMode("all") });
-    selectedCategories.forEach((c) => tags.push({ id: `cat-${c}`, label: labelFor("category", c), onRemove: () => toggleCategory(c) }));
-    selectedAgeGroups.forEach((a) => tags.push({ id: `age-${a}`, label: labelFor("age", a), onRemove: () => toggleAgeGroup(a) }));
+  const activeTags = useMemo(() => {
+    const tags: { id: string; label: string; onRemove: () => void }[] = [];
+    if (searchQuery) tags.push({ id: "q", label: `🔍 ${searchQuery}`, onRemove: () => setSearchQuery("") });
+    if (selectedCity !== "All") tags.push({ id: "city", label: `📍 ${selectedCity}`, onRemove: () => setSelectedCity("All") });
+    if (selectedMode !== "all") tags.push({ id: "mode", label: selectedMode === "online" ? "💻 Online" : "🏠 In-Person", onRemove: () => setSelectedMode("all") });
+    selectedCategories.forEach((c) => tags.push({ id: `cat-${c}`, label: `🔖 ${c}`, onRemove: () => toggleCategory(c) }));
+    selectedAgeGroups.forEach((a) => tags.push({ id: `age-${a}`, label: `🧒 ${a}`, onRemove: () => toggleAgeGroup(a) }));
     selectedSubModules.forEach((s) => tags.push({ id: `sub-${s}`, label: s, onRemove: () => toggleSubModule(s) }));
     return tags;
   }, [searchQuery, selectedCity, selectedMode, selectedCategories, selectedAgeGroups, selectedSubModules]);
 
-  // ── URL sync (push state changes back to URL for shareability) ──────────────
-  function syncUrl(overrides: Record<string, string> = {}) {
-    const p = new URLSearchParams();
-    const q   = overrides.q       ?? searchQuery;
-    const cat = overrides.cat     ?? selectedCategories[0] ?? "";
-    const city = overrides.city   ?? (selectedCity !== "All" ? selectedCity : "");
-    const age = overrides.age     ?? selectedAgeGroups[0] ?? "";
-    const mode = overrides.mode   ?? (selectedMode !== "all" ? selectedMode : "");
-    if (q)    p.set("q", q);
-    if (cat)  p.set("category", cat);
-    if (city) p.set("city", city);
-    if (age)  p.set("ageGroup", age);
-    if (mode) p.set("mode", mode);
-    router.replace(`/specialists?${p.toString()}`, { scroll: false });
-  }
+  const activeZone = useMemo(() => {
+    if (selectedMode === "online") return ZONES.find(z => z.id === "online") || null;
+    if (selectedCity === "All") return null;
+    return ZONES.find(z => z.city === selectedCity) || null;
+  }, [selectedCity, selectedMode]);
 
-  // ── Toggle helpers ──────────────────────────────────────────────────────────
+  const handleUnifiedSearch = (q: string, zone: any) => {
+    setSearchQuery(q);
+    if (zone) {
+      if (zone.id === "online") {
+        setSelectedMode("online");
+        setSelectedCity("All");
+      } else {
+        setSelectedCity(zone.city);
+        setSelectedMode("all");
+      }
+    } else {
+      setSelectedCity("All");
+      setSelectedMode("all");
+    }
+  };
+
   const toggleCategory = (cat: string) => {
     const norm = normalizeCategory(cat);
-    setSelectedCategories((prev) => {
-      const next = prev.includes(norm) ? prev.filter((c) => c !== norm) : [...prev, norm];
-      return next;
-    });
+    setSelectedCategories((prev) => 
+      prev.includes(norm) ? prev.filter((c) => c !== norm) : [...prev, norm]
+    );
   };
 
   const toggleSubModule = (sm: string) => {
@@ -261,371 +254,298 @@ function SpecialistsContent() {
     router.replace("/specialists", { scroll: false });
   };
 
-  const hasFilters = activeTags.length > 0;
-
-  // ─────────────────────────────────────────────────────────────────────────────
-
   return (
-    <div style={{
-      minHeight: "100vh", background: "#0d0f1a", color: "#e8e2d8",
-      fontFamily: "'DM Sans', 'Inter', sans-serif",
-    }}>
-      <Navbar />
+    <div className="min-h-screen">
+      <AmbientCanvas />
 
-      <main style={{ paddingTop: 96, paddingBottom: 80 }}>
-
-        {/* ── HEADER ── */}
-        <header style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
-          {/* Breadcrumb */}
-          <div style={{ fontSize: 12, color: "#5a5466", marginBottom: 12 }}>
-            <Link href="/" style={{ color: "#5a5466", textDecoration: "none" }}>Home</Link>
-            {" / "}
-            <span style={{ color: "#8a8591" }}>Find a Specialist</span>
-          </div>
-
-          <h1 style={{
-            fontFamily: "'DM Serif Display', Georgia, serif",
-            fontSize: "clamp(28px, 4vw, 42px)", color: "#f0ece4",
-            lineHeight: 1.15, margin: "0 0 8px",
-          }}>
-            {selectedCategories.length > 0
-              ? `${selectedCategories.join(" & ")} Specialists`
-              : "Find the right specialist"}
-          </h1>
-          <p style={{ fontSize: 14, color: "#8a8591", lineHeight: 1.6 }}>
-            {selectedCity !== "All"
-              ? `Showing verified specialists ${selectedMode === "online" ? "online" : `in ${selectedCity}`} — all background-checked.`
-              : "All specialists are verified and background-checked."}
-          </p>
-        </header>
-
-        {/* ── SEARCH BAR ── */}
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 16px" }}>
-          <div style={{
-            display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center",
-            background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)",
-            borderRadius: 16, padding: "10px 16px",
-          }}>
-
-            {/* Search input */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "3 1 220px", minWidth: 0 }}>
-              <Search style={{ width: 15, height: 15, color: "#6b6475", flexShrink: 0 }} />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, specialty, concern…"
-                style={{
-                  flex: 1, background: "transparent", border: "none", outline: "none",
-                  fontSize: 13, color: "#e8e2d8", fontFamily: "inherit", minWidth: 0,
-                }}
-                aria-label="Search specialists"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} style={{ background: "none", border: "none", cursor: "pointer", color: "#5a5466", padding: 2 }}>
-                  <X style={{ width: 12, height: 12 }} />
-                </button>
-              )}
-            </div>
-
-            <div style={{ width: "0.5px", height: 20, background: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
-
-            {/* City selector */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "1 1 130px" }}>
-              <MapPin style={{ width: 13, height: 13, color: "#8b7ff0", flexShrink: 0 }} />
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                style={{
-                  background: "transparent", border: "none", outline: "none",
-                  fontSize: 13, color: selectedCity !== "All" ? "#c5b8f8" : "#8a8591",
-                  fontFamily: "inherit", cursor: "pointer", minWidth: 0, flex: 1,
-                }}
-                aria-label="Filter by city"
-              >
-                <option value="All">All Locations</option>
-                {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            <div style={{ width: "0.5px", height: 20, background: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
-
-            {/* Mode toggle */}
-            <div style={{ display: "flex", gap: 4 }}>
-              {(["all", "online", "offline"] as const).map((m) => (
-                <button key={m}
-                  onClick={() => setSelectedMode(m)}
-                  style={{
-                    padding: "5px 12px", borderRadius: 100, fontSize: 11, fontWeight: 600,
-                    background: selectedMode === m ? "rgba(139,127,240,0.15)" : "transparent",
-                    border: selectedMode === m ? "0.5px solid rgba(139,127,240,0.4)" : "0.5px solid rgba(255,255,255,0.06)",
-                    color: selectedMode === m ? "#c5b8f8" : "#5a5466",
-                    cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                    display: "flex", alignItems: "center", gap: 4,
-                  }}
-                >
-                  {m === "online" && <Video style={{ width: 10, height: 10 }} />}
-                  {m === "offline" && <MapPin style={{ width: 10, height: 10 }} />}
-                  {m === "all" ? "All" : m === "online" ? "Online" : "In-Person"}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ width: "0.5px", height: 20, background: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
-
-            {/* Filters toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "7px 14px",
-                borderRadius: 100, fontSize: 12, fontWeight: 600,
-                background: showFilters ? "rgba(139,127,240,0.12)" : "rgba(255,255,255,0.04)",
-                border: showFilters ? "0.5px solid rgba(139,127,240,0.4)" : "0.5px solid rgba(255,255,255,0.1)",
-                color: showFilters ? "#c5b8f8" : "#8a8591",
-                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-              }}
+      <main className="relative z-10 pt-32 pb-40">
+        
+        {/* ═══ MAGAZINE HEADER: HIGH DENSITY & ELEGANT ═══ */}
+        <header className="max-w-7xl mx-auto px-6 mb-20">
+          <div className="max-w-4xl space-y-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3"
             >
-              <SlidersHorizontal style={{ width: 12, height: 12 }} />
-              Filters
-              {hasFilters && (
-                <span style={{ width: 16, height: 16, borderRadius: "50%", background: "#8b7ff0", color: "#fff", fontSize: 9, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {activeTags.length}
-                </span>
-              )}
-            </button>
+              <div className="h-px w-8 bg-[#8b7ff0]" />
+              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#8b7ff0]">Clinical Resource Center</span>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-6xl md:text-8xl font-black italic !leading-[0.9] tracking-tighter text-white font-dm-serif"
+            >
+              {selectedCategories.length > 0 ? selectedCategories[0] : "Bridge the gap."}
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg md:text-xl text-[#8a8591] italic font-medium leading-relaxed max-w-2xl"
+            >
+              Connect with verified specialists dedicated to radical progress and neuro-affirming care. 
+              <span className="text-[#5dcaa5]"> Trusted by over 120,000 families across India.</span>
+            </motion.p>
           </div>
 
-          {/* ── ACTIVE FILTER TAGS (always visible) ── */}
-          {activeTags.length > 0 && (
-            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-              <span style={{ fontSize: 11, color: "#5a5466", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>Active:</span>
-              {activeTags.map((tag) => (
-                <span key={tag.id} style={{
-                  display: "inline-flex", alignItems: "center", gap: 6,
-                  padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 600,
-                  background: "rgba(139,127,240,0.1)", border: "0.5px solid rgba(139,127,240,0.3)",
-                  color: "#c5b8f8",
-                }}>
-                  {tag.label}
-                  <button onClick={tag.onRemove} style={{ background: "none", border: "none", cursor: "pointer", color: "#8b7ff0", padding: 0, display: "flex", lineHeight: 1 }}>
-                    <X style={{ width: 10, height: 10 }} />
-                  </button>
-                </span>
-              ))}
-              <button onClick={clearFilters} style={{ fontSize: 11, color: "#5a5466", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>
-                Clear all
-              </button>
-            </div>
-          )}
+          {/* ═══ SEARCH & FILTERS (Desktop Marginalized) ═══ */}
+          <div className="mt-16 space-y-10">
+            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
+              {/* Limited width search container with margins */}
+              <div className="w-full lg:max-w-3xl lg:mr-8">
+                <UnifiedSearchBar 
+                  initialQuery={searchQuery}
+                  initialZone={activeZone}
+                  onSearch={handleUnifiedSearch}
+                  onQueryChange={(q) => setSearchQuery(q)}
+                  placeholder="Search specialists, needs, or clinical expertise…"
+                />
+              </div>
 
-          {/* ── EXPANDED FILTERS ── */}
-          {showFilters && (
-            <div style={{
-              background: "rgba(26,28,46,0.95)", border: "0.5px solid rgba(255,255,255,0.1)",
-              borderRadius: 16, padding: 24, marginTop: 10,
-              boxShadow: "0 24px 48px rgba(0,0,0,0.4)",
-            }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 24 }}>
-
-                {/* Service Type */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5a5466", marginBottom: 10 }}>Service Type</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {TOP_LEVEL_FILTERS.filter((f) => f !== "All").map((cat) => (
-                      <button key={cat} onClick={() => toggleCategory(cat)}
-                        style={{
-                          padding: "6px 12px", borderRadius: 100, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                          background: selectedCategories.includes(cat) ? "rgba(139,127,240,0.15)" : "rgba(255,255,255,0.04)",
-                          border: selectedCategories.includes(cat) ? "0.5px solid rgba(139,127,240,0.4)" : "0.5px solid rgba(255,255,255,0.08)",
-                          color: selectedCategories.includes(cat) ? "#c5b8f8" : "#8a8591",
-                          fontFamily: "inherit", transition: "all 0.15s",
-                        }}
-                      >{cat}</button>
-                    ))}
-                  </div>
+              <div className="flex items-center gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+                {/* Mode Toggles */}
+                <div className="flex bg-white/[0.03] p-1.5 rounded-3xl border border-white/5 backdrop-blur-3xl shrink-0">
+                  {(["all", "online", "offline"] as const).map((m) => (
+                    <button 
+                      key={m}
+                      onClick={() => setSelectedMode(m)}
+                      className={cn(
+                        "px-6 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap",
+                        selectedMode === m 
+                          ? "bg-[#8b7ff0] text-[#0a0b14] shadow-lg shadow-[#8b7ff0]/10" 
+                          : "text-[#8a8591] hover:text-white"
+                      )}
+                    >
+                      {m === "all" ? "All" : m === "online" ? "Online" : "In-Person"}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Age Group */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5a5466", marginBottom: 10 }}>Age Group</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {AGE_GROUPS.map((age) => (
-                      <button key={age} onClick={() => toggleAgeGroup(age)}
-                        style={{
-                          padding: "6px 12px", borderRadius: 100, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                          background: selectedAgeGroups.includes(age) ? "rgba(29,158,117,0.15)" : "rgba(255,255,255,0.04)",
-                          border: selectedAgeGroups.includes(age) ? "0.5px solid rgba(29,158,117,0.4)" : "0.5px solid rgba(255,255,255,0.08)",
-                          color: selectedAgeGroups.includes(age) ? "#5DCAA5" : "#8a8591",
-                          fontFamily: "inherit", transition: "all 0.15s",
-                        }}
-                      >{age}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Subjects / Sub-modules */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5a5466", marginBottom: 10 }}>Specializations</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {Array.from(new Set(
-                      SERVICE_GROUPS
-                        .filter((g) => selectedCategories.includes(g.name) || selectedCategories.length === 0)
-                        .flatMap((g) => g.services)
-                        .map((s) => s === "OT" ? "Occupational Therapy" : s)
-                    )).slice(0, 20).map((sm) => (
-                      <button key={sm} onClick={() => toggleSubModule(sm)}
-                        style={{
-                          padding: "6px 12px", borderRadius: 100, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                          background: selectedSubModules.includes(sm) ? "rgba(24,95,165,0.15)" : "rgba(255,255,255,0.04)",
-                          border: selectedSubModules.includes(sm) ? "0.5px solid rgba(24,95,165,0.4)" : "0.5px solid rgba(255,255,255,0.08)",
-                          color: selectedSubModules.includes(sm) ? "#85B7EB" : "#8a8591",
-                          fontFamily: "inherit", transition: "all 0.15s",
-                        }}
-                      >{sm}</button>
-                    ))}
-                  </div>
-                </div>
+                {/* Filter Toggle */}
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={cn(
+                    "flex items-center gap-3 px-8 py-3.5 rounded-3xl text-[9px] font-black uppercase tracking-widest transition-all duration-500 border relative overflow-hidden group shrink-0",
+                    showFilters 
+                      ? "bg-[#8b7ff0]/10 border-[#8b7ff0]/30 text-[#8b7ff0]" 
+                      : "bg-white/[0.03] border-white/5 text-[#8a8591] hover:text-white"
+                  )}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  Filter parameters
+                  {activeTags.length > 0 && (
+                    <span className="ml-2 w-5 h-5 rounded-full bg-[#8b7ff0] text-[#0a0b14] flex items-center justify-center text-[9px] font-black">
+                      {activeTags.length}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* ── RESULTS ── */}
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+            {/* Expanded Filters Panel */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-10 rounded-[3rem] bg-white/[0.02] border border-white/5 backdrop-blur-3xl mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+                      <div className="space-y-6">
+                        <p className="text-[9px] uppercase font-black text-[#8b7ff0] tracking-[0.4em]">Core Discipline</p>
+                        <div className="flex flex-wrap gap-2.5">
+                          {TOP_LEVEL_FILTERS.filter(f => f !== "All").map(cat => (
+                            <button 
+                              key={cat} onClick={() => toggleCategory(cat)}
+                              className={cn(
+                                "px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 border",
+                                selectedCategories.includes(cat)
+                                  ? "bg-[#8b7ff010] border-[#8b7ff030] text-[#8b7ff0]"
+                                  : "bg-white/5 border-transparent text-[#8a8591] hover:text-white"
+                              )}
+                            >{cat}</button>
+                          ))}
+                        </div>
+                      </div>
 
+                      <div className="space-y-6">
+                        <p className="text-[9px] uppercase font-black text-[#5dcaa5] tracking-[0.4em]">Age Focus</p>
+                        <div className="flex flex-wrap gap-2.5">
+                          {AGE_GROUPS.map(age => (
+                            <button 
+                              key={age} onClick={() => toggleAgeGroup(age)}
+                              className={cn(
+                                "px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 border",
+                                selectedAgeGroups.includes(age)
+                                  ? "bg-[#5dcaa510] border-[#5dcaa530] text-[#5dcaa5]"
+                                  : "bg-white/5 border-transparent text-[#8a8591] hover:text-white"
+                              )}
+                            >{age}</button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <p className="text-[9px] uppercase font-black text-[#ef9f27] tracking-[0.4em]">Sub-Specialty</p>
+                        <div className="flex flex-wrap gap-2.5">
+                          {Array.from(new Set(
+                            SERVICE_GROUPS
+                              .filter((g) => g.name === "All" || selectedCategories.includes(g.name) || selectedCategories.length === 0)
+                              .flatMap((g) => g.services)
+                              .map((s) => s === "OT" ? "Occupational Therapy" : s)
+                          )).slice(0, 12).map(sm => (
+                            <button 
+                              key={sm} onClick={() => toggleSubModule(sm)}
+                              className={cn(
+                                "px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 border",
+                                selectedSubModules.includes(sm)
+                                  ? "bg-[#ef9f2710] border-[#ef9f2730] text-[#ef9f27]"
+                                  : "bg-white/5 border-transparent text-[#8a8591] hover:text-white"
+                              )}
+                            >{sm}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Active Param Tags */}
+            <AnimatePresence>
+              {activeTags.length > 0 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-wrap items-center gap-4"
+                >
+                  <span className="text-[9px] font-black text-[#8a8591] uppercase tracking-[0.3em]">Precision Filters:</span>
+                  {activeTags.map((tag) => (
+                    <button 
+                      key={tag.id}
+                      onClick={tag.onRemove}
+                      className="group flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/[0.03] border border-white/5 text-[10px] font-black text-[#f0ece4]/80 hover:border-red-500/20 hover:text-red-400 transition-all duration-500"
+                    >
+                      {tag.label}
+                      <X className="w-3 h-3 text-[#8a8591] group-hover:text-red-400 transition-colors" />
+                    </button>
+                  ))}
+                  <button onClick={clearFilters} className="text-[10px] font-black text-[#8b7ff0] uppercase tracking-widest hover:text-white transition-colors ml-4 underline underline-offset-8 decoration-[#8b7ff0]/20">Reset System</button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </header>
+
+        {/* ═══ RESULTS GRID: PREMIUM & HIGH-DENSITY ═══ */}
+        <section className="max-w-7xl mx-auto px-6">
           {loading ? (
-            // ── Loading skeletons ──
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} style={{ height: 280, borderRadius: 18, background: "rgba(255,255,255,0.03)", animation: "pulse 1.5s ease-in-out infinite" }} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-[520px] rounded-[2.5rem] bg-white/[0.01] border border-white/5 animate-pulse" />
               ))}
             </div>
           ) : (
-            <>
-              {/* Results count */}
-              {providers.length > 0 && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                  <p style={{ fontSize: 13, color: "#8a8591" }}>
-                    <span style={{ fontWeight: 700, color: "#f0ece4" }}>{providers.length}</span> specialists found
-                    {selectedCity !== "All" && <span style={{ color: "#8b7ff0" }}> in {selectedCity}</span>}
-                  </p>
-                  {/* Sort (UI only for now) */}
-                  <select style={{
-                    background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)",
-                    borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#8a8591",
-                    fontFamily: "inherit", cursor: "pointer", outline: "none",
-                  }}>
-                    <option>Best match</option>
-                    <option>Highest rated</option>
-                    <option>Most reviews</option>
-                  </select>
+            <div className="space-y-24">
+              {/* Result Meta Indicator */}
+              <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                <div className="flex items-center gap-6">
+                  <div className="h-10 w-px bg-gradient-to-b from-[#8b7ff0] to-transparent" />
+                  <div>
+                    <p className="text-3xl font-black italic tracking-tighter text-white">{providers.length}</p>
+                    <p className="text-[9px] uppercase font-black text-[#8a8591] tracking-[0.3em]">Verified Specialists Identified</p>
+                  </div>
                 </div>
-              )}
+              </div>
 
-              {/* Results grid */}
-              {providers.length > 0 && (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16, marginBottom: 40 }}>
+              {providers.length > 0 ? (
+                <motion.div 
+                  initial="hidden" animate="visible"
+                  variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12"
+                >
                   {providers.map((provider) => (
-                    <ProviderCard key={provider.id} provider={provider} />
+                    <motion.div
+                      key={provider.id}
+                      variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        visible: { opacity: 1, y: 0 }
+                      }}
+                      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <ProviderCard provider={provider} />
+                    </motion.div>
                   ))}
-                </div>
-              )}
-
-              {/* ─── ZERO RESULTS + ONLINE FALLBACK ─── */}
-              {providers.length === 0 && (
-                <div style={{ padding: "48px 24px", textAlign: "center" }}>
-                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                    <Search style={{ width: 22, height: 22, color: "#5a5466" }} />
-                  </div>
-                  <h3 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 22, color: "#f0ece4", marginBottom: 8 }}>
-                    {selectedCity !== "All"
-                      ? `No in-person specialists found in ${selectedCity}`
-                      : "No specialists match these filters"}
-                  </h3>
-                  <p style={{ fontSize: 14, color: "#8a8591", maxWidth: 400, margin: "0 auto 24px", lineHeight: 1.65 }}>
-                    {selectedCity !== "All"
-                      ? `We don't have in-person specialists in ${selectedCity} yet — but many of our experts offer equally effective online sessions.`
-                      : "Try adjusting your filters or broaden your search to find the right match."}
-                  </p>
-                  <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-                    <button onClick={clearFilters} style={{
-                      padding: "10px 24px", borderRadius: 100, fontSize: 13, fontWeight: 700,
-                      background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.12)",
-                      color: "#e8e2d8", cursor: "pointer", fontFamily: "inherit",
-                    }}>Clear filters</button>
-                    {selectedCity !== "All" && (
-                      <button onClick={() => { setSelectedCity("All"); setSelectedMode("online"); }} style={{
-                        padding: "10px 24px", borderRadius: 100, fontSize: 13, fontWeight: 700,
-                        background: "rgba(139,127,240,0.12)", border: "0.5px solid rgba(139,127,240,0.4)",
-                        color: "#c5b8f8", cursor: "pointer", fontFamily: "inherit",
-                        display: "flex", alignItems: "center", gap: 6,
-                      }}>
-                        <Video style={{ width: 13, height: 13 }} /> Show online specialists
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ─── ONLINE FALLBACK SECTION (when city returned 0) ─── */}
-              {providers.length === 0 && onlineProviders.length > 0 && (
-                <div style={{ marginTop: 48 }}>
-                  <div style={{
-                    background: "rgba(139,127,240,0.06)", border: "0.5px solid rgba(139,127,240,0.2)",
-                    borderRadius: 16, padding: "20px 24px", marginBottom: 24,
-                    display: "flex", alignItems: "flex-start", gap: 14,
-                  }}>
-                    <Globe style={{ width: 20, height: 20, color: "#8b7ff0", flexShrink: 0, marginTop: 2 }} />
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#c5b8f8", marginBottom: 4 }}>
-                        Can't find someone in {selectedCity}? These specialists are available online
-                      </div>
-                      <p style={{ fontSize: 13, color: "#8a8591", lineHeight: 1.6 }}>
-                        Research shows online therapy is equally effective for most conditions. These {onlineProviders.length} verified experts offer sessions via video — same quality, more flexibility.
+                </motion.div>
+              ) : (
+                <div className="py-40 text-center space-y-12">
+                   <div className="relative inline-block">
+                     <div className="absolute inset-0 bg-[#8b7ff0]/10 blur-[80px] rounded-full" />
+                     <div className="relative h-24 w-24 rounded-[2rem] bg-white/[0.02] border border-white/10 flex items-center justify-center mx-auto mb-10">
+                       <Search className="w-10 h-10 text-[#8a8591]/40" />
+                     </div>
+                   </div>
+                   <div className="space-y-4 max-w-xl mx-auto">
+                      <h3 className="text-4xl font-black italic tracking-tight text-white/90 font-dm-serif">
+                        {selectedCity !== "All" ? `Bridge required in ${selectedCity}` : "Zero clinical matches."}
+                      </h3>
+                      <p className="text-[#8a8591] italic font-medium text-lg leading-relaxed px-6">
+                        {selectedCity !== "All" 
+                          ? "We don't have physically present specialists in this zone yet. However, our Tele-Care platform secures clinical parity with nationwide experts."
+                          : "Try broadening your search parameters or resetting the filters to bridge the gap."}
                       </p>
+                   </div>
+                   <div className="flex items-center justify-center gap-6 pt-6">
+                      <button onClick={clearFilters} className="h-14 px-10 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all">
+                        Reset Filters
+                      </button>
+                      {selectedCity !== "All" && (
+                        <button 
+                          onClick={() => { setSelectedCity("All"); setSelectedMode("online"); }}
+                          className="h-14 px-10 rounded-2xl bg-[#8b7ff0] text-[#0a0b14] font-black text-[11px] uppercase tracking-widest hover:bg-white active:scale-95 transition-all shadow-xl shadow-[#8b7ff0]/10"
+                        >
+                           Enable Online Access
+                        </button>
+                      )}
+                   </div>
+                </div>
+              )}
+
+              {/* Online Continuity if local is empty */}
+              {providers.length === 0 && onlineProviders.length > 0 && (
+                <div className="space-y-16">
+                  <div className="p-12 rounded-[3.5rem] bg-gradient-to-br from-[#8b7ff0]/5 to-transparent border border-white/5 backdrop-blur-3xl flex flex-col md:flex-row items-center gap-12">
+                    <div className="h-20 w-20 rounded-[2rem] bg-[#8b7ff0]/10 flex items-center justify-center flex-shrink-0 shadow-2xl">
+                      <Globe className="w-8 h-8 text-[#8b7ff0]" />
+                    </div>
+                    <div className="flex-1 space-y-4 text-center md:text-left">
+                       <h3 className="text-3xl font-black italic tracking-tight text-white font-dm-serif">Global Continuity Network</h3>
+                       <p className="text-[#8a8591] italic font-medium leading-relaxed max-w-2xl">
+                         Scientific research confirms that tele-intervention is a valid path for progress. These {onlineProviders.length} verified specialists are ready to secure your child's milestones today.
+                       </p>
                     </div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
                     {onlineProviders.map((provider) => (
                       <ProviderCard key={provider.id} provider={provider} />
                     ))}
                   </div>
                 </div>
               )}
-
-              {/* Not sure CTA */}
-              {(providers.length > 0 || onlineProviders.length > 0) && (
-                <div style={{
-                  marginTop: 40, padding: "24px 28px", borderRadius: 16, textAlign: "center",
-                  background: "rgba(255,255,255,0.025)", border: "0.5px solid rgba(255,255,255,0.06)",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap",
-                }}>
-                  <div>
-                    <p style={{ fontSize: 13, color: "#8a8591", marginBottom: 4 }}>Not sure who to choose?</p>
-                    <p style={{ fontSize: 12, color: "#5a5466" }}>Answer 3 questions and we'll match you with the right specialist.</p>
-                  </div>
-                  <Link href="/triage" style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    padding: "10px 22px", borderRadius: 100, fontSize: 13, fontWeight: 700,
-                    background: "rgba(239,159,39,0.1)", border: "0.5px solid rgba(239,159,39,0.3)",
-                    color: "#EF9F27", textDecoration: "none",
-                  }}>
-                    <HelpCircle style={{ width: 13, height: 13 }} /> Get guided →
-                  </Link>
-                </div>
-              )}
-            </>
+            </div>
           )}
-        </div>
+        </section>
+
       </main>
-
-      <Footer />
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
     </div>
   );
 }

@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
         destination: '/specialists',
         permanent: true,
       },
+      {
+        source: '/book',
+        destination: '/booking/checkout',
+        permanent: true,
+      },
     ];
   },
 };

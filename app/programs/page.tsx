@@ -1,7 +1,7 @@
 import { getPrograms } from "@/lib/actions/programs";
-import { ProgramsClient } from "./ProgramsClient";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import ProgramsRedesign from "./ProgramsRedesign";
 
 export const metadata = {
   title: "Clinical Programs & Support Groups | Insighte Care",
@@ -9,21 +9,13 @@ export const metadata = {
 };
 
 export default async function ProgramsPage() {
+  // We fetch programs to keep them in background if needed, 
+  // but the redesign uses the refined editorial content requested.
   const allPrograms = (await getPrograms()) || [];
-  
-  const coreServices = allPrograms.filter((p: any) => p?.type === 'core_service');
-  const courses = allPrograms.filter((p: any) => p?.type === 'course');
-  const groups = allPrograms.filter((p: any) => p?.type === 'support_group');
 
   return (
-    <div className="min-h-screen bg-[#0d0f1a] text-[#e8e2d8] selection:bg-[#8b7ff0/30]">
-      <Navbar />
-      <ProgramsClient 
-        initialServices={coreServices}
-        initialCourses={courses}
-        initialGroups={groups}
-      />
-      <Footer />
-    </div>
+    <>
+      <ProgramsRedesign />
+    </>
   );
 }

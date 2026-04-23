@@ -126,7 +126,7 @@ export default function ProgramTemplate({
                 </div>
 
                 <div className="space-y-4 pt-16">
-                   <Link href="/book" className="w-full h-20 rounded-[2rem] bg-black text-white font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-4 hover:bg-[#8b7ff0] transition-all shadow-xl group active:scale-95">
+                   <Link href="/booking/checkout?type=consultation" className="w-full h-20 rounded-[2rem] bg-black text-white font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-4 hover:bg-[#8b7ff0] transition-all shadow-xl group active:scale-95">
                       Secure Slot <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
                    </Link>
                    <button className="w-full h-20 rounded-[2rem] bg-white border-2 border-black/5 text-black font-black uppercase text-xs tracking-[0.2em] hover:bg-black/5 transition-all text-center">
@@ -187,7 +187,7 @@ export default function ProgramTemplate({
            </div>
         </section>
 
-        {/* TOP EXPERTS CAROUSEL (Simplified for now) */}
+        {/* TOP EXPERTS GRID (Simplified for now) */}
         <section className="py-40 px-6">
            <div className="max-w-7xl mx-auto mb-20 flex items-end justify-between">
               <div>

@@ -6,13 +6,23 @@ import { revalidatePath } from "next/cache";
 export async function getPrograms(type?: string) {
   const supabase = createStaticClient();
   if (!supabase) return [];
-  let query = supabase.from("programs").select("*").order("display_order", { ascending: true });
+  
+  let query = supabase.from("programs").select("*");
   
   if (type) {
     query = query.eq("type", type);
   }
+
+  // Attempt to order by display_order, but we'll handle the potential column-missing error
+  let { data, error } = await query.order("display_order", { ascending: true });
   
-  const { data, error } = await query;
+  if (error && error.code === '42703') {
+    console.warn("display_order column might be missing, falling back to unsorted fetch");
+    const fallback = await query;
+    data = fallback.data;
+    error = fallback.error;
+  }
+  
   if (error) {
     console.error("CRITICAL DATABASE FAILURE (Programs Table):", error);
     // Fallback to initial seed data to prevent UI blackout

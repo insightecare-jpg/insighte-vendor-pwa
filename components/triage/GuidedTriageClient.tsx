@@ -87,7 +87,7 @@ export default function GuidedTriageClient() {
           <div className="bg-[#e8e2d8] p-[5px] rounded-full flex items-center justify-center -ml-1">
             <Heart className="w-[18px] h-[18px] text-[#0d0f1a] fill-current" />
           </div>
-          <span className="font-bold text-lg tracking-tight text-[#f0ece4]" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          <span className="font-bold text-lg tracking-tight text-[#f0ece4] font-dm-serif">
             Insighte
           </span>
         </div>
@@ -117,7 +117,7 @@ export default function GuidedTriageClient() {
           {/* STEP 1: AGE */}
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tighter" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tighter font-dm-serif">
                 Who is this for?
               </h1>
               <p className="text-[#8a8591] mb-10 text-sm sm:text-base leading-relaxed">
@@ -156,7 +156,7 @@ export default function GuidedTriageClient() {
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
               </button>
               
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tighter" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tighter font-dm-serif">
                 What is your primary concern?
               </h1>
               <p className="text-[#8a8591] mb-10 text-sm sm:text-base leading-relaxed">
@@ -198,7 +198,7 @@ export default function GuidedTriageClient() {
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
               </button>
               
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tighter" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tighter font-dm-serif">
                 How would you prefer sessions?
               </h1>
               <p className="text-[#8a8591] mb-10 text-sm sm:text-base leading-relaxed">
@@ -266,7 +266,7 @@ export default function GuidedTriageClient() {
                 </div>
               </div>
               
-              <h2 className="text-3xl font-black mb-4 tracking-tighter text-white" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-3xl font-black mb-4 tracking-tighter text-white font-dm-serif">
                 Matching you with the<br/>perfect specialist...
               </h2>
               <p className="text-[#8a8591] text-sm max-w-xs mx-auto animate-pulse flex flex-col gap-2">

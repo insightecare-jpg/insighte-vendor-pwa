@@ -26,7 +26,7 @@ export default function SpecialistsTable() {
             .from('partners')
             .select(`
                 *,
-                user:users (*)
+                user:users!user_id (*)
             `)
             .order('created_at', { ascending: false });
 

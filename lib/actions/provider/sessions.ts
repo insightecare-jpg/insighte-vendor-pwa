@@ -197,8 +197,8 @@ export async function getDailySessions() {
         status,
         start_time,
         learner:children(id, name, age),
-        parent:parents(id, name),
-        service:programs(id, name)
+        parent:profiles(id, full_name),
+        service:services(id, title)
       `)
       .eq('provider_id', partner.id)
       .gte('start_time', today.toISOString())
@@ -213,7 +213,8 @@ export async function getDailySessions() {
         id: s.id,
         learner: (s.learner as any)?.name || "Unknown",
         age: (s.learner as any)?.age ? `${(s.learner as any).age}y` : "N/A",
-        service: (s.service as any)?.name || "Clinical Session",
+        parent: (s.parent as any)?.full_name || "Unknown Parent",
+        service: (s.service as any)?.title || "Clinical Session",
         time: new Date(s.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: s.status,
         avatar: `https://i.pravatar.cc/150?u=${s.id}`

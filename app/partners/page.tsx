@@ -4,15 +4,12 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShieldCheck, HeartPulse, UserPlus, Briefcase, Award, Globe, Sparkles, ArrowRight, Zap, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { Button } from "@/components/ui/button";
 
 export default function PartnersPage() {
   return (
-    <div className="flex min-h-screen-safe flex-col bg-zinc-950">
-      <Navbar />
+    <div className="flex min-h-screen-safe flex-col">
 
       <main className="flex-1">
         {/* HERO SECTION */}
@@ -130,8 +127,6 @@ export default function PartnersPage() {
            </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

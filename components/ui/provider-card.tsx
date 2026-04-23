@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, MapPin, ShieldCheck, Sparkles, ArrowRight, Video, Briefcase } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getExpertImage } from "@/lib/utils";
 
 interface Provider {
   id: string;
@@ -38,10 +38,11 @@ interface ProviderCardProps {
   provider: Provider;
   className?: string;
   priority?: boolean;
+  hrefOverride?: string;
 }
 
-export function ProviderCard({ provider, className, priority = false }: ProviderCardProps) {
-  const href = `/specialists/${provider.slug || provider.id}`;
+export function ProviderCard({ provider, className, priority = false, hrefOverride }: ProviderCardProps) {
+  const href = hrefOverride || `/specialists/${provider.slug || provider.id}`;
   const rating = provider.rating_avg || provider.rating || 4.9;
   const bookings = provider.booking_count || provider.total_bookings || 120;
   const experience = provider.experience_years || 5;
@@ -60,22 +61,18 @@ export function ProviderCard({ provider, className, priority = false }: Provider
       {/* ── IMAGE SECTION (Taller portrait) ── */}
       <div className="relative h-[320px] w-full overflow-hidden">
         {(() => {
-          const category = (provider.category || (provider as any).provider_type || "").toLowerCase();
-          let fallback = "/images/experts/special_educator.png";
-          if (category.includes("speech")) fallback = "/images/experts/speech_therapist.png";
-          else if (category.includes("autism") || category.includes("aba")) fallback = "/images/experts/autism_specialist.png";
-          else if (category.includes("counsel") || category.includes("behavior")) fallback = "/images/experts/behavioral_specialist.png";
+          const imageSrc = getExpertImage(provider);
           
           return (
             <Image
-              src={provider.avatar_url || provider.profile_image || fallback}
+              src={imageSrc}
               alt={provider.name}
               fill
               priority={priority}
               className="object-cover object-top transition-transform duration-[1.5s] group-hover:scale-110"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = fallback;
+                target.src = "/images/experts/special_educator.png";
               }}
             />
           );
@@ -112,10 +109,10 @@ export function ProviderCard({ provider, className, priority = false }: Provider
       <div className="px-7 pt-5 flex flex-col gap-2 relative z-10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col">
-            <h3 className="text-2xl font-black text-white tracking-tight group-hover:text-[#c5b8f8] transition-colors duration-500 leading-tight">
+            <h3 className="text-3xl font-black text-white tracking-tight group-hover:text-[#c5b8f8] transition-colors duration-500 leading-tight italic font-dm-serif">
               {provider.name}
             </h3>
-            <p className="text-[10px] font-black text-[#8b7ff0] uppercase tracking-[0.2em] mt-1 opacity-70">
+            <p className="text-[10px] font-black text-[#8b7ff0] uppercase tracking-[0.2em] mt-1 opacity-70 italic">
               {provider.provider_type || provider.category || "Consultant"}
             </p>
           </div>
@@ -145,27 +142,37 @@ export function ProviderCard({ provider, className, priority = false }: Provider
           ))}
         </div>
 
-        {/* Stats Row */}
-        <div className="flex items-center justify-between py-4 border-y border-white/5 mb-5 px-1">
-          <div className="flex flex-col gap-0.5" aria-label={`Experience: ${experience} years`}>
-            <span className="text-[8px] font-black text-[#8a8591] uppercase tracking-[0.2em]" aria-hidden="true">Experience</span>
-            <span className="text-sm font-black text-white/90">{experience} Years</span>
+        {/* Stats Row with improved responsiveness and icons */}
+        <div className="flex items-center justify-between py-4 border-y border-white/5 mb-5 px-1 gap-2">
+          <div className="flex flex-col gap-1 items-start min-w-0" aria-label={`Experience: ${experience} years`}>
+            <div className="flex items-center gap-1.5">
+              <Briefcase className="w-2.5 h-2.5 text-[#8a8591]" />
+              <span className="text-[7px] font-black text-[#8a8591] uppercase tracking-[0.2em] whitespace-nowrap" aria-hidden="true">Experience</span>
+            </div>
+            <span className="text-[13px] font-black text-white/90 whitespace-nowrap">{experience} Yrs</span>
           </div>
-          <div className="flex flex-col gap-0.5 items-center" aria-label={`Impact: ${bookings} families helped`}>
-            <span className="text-[8px] font-black text-[#8a8591] uppercase tracking-[0.2em]" aria-hidden="true">Impact</span>
-            <span className="text-sm font-black text-white/90">{bookings}+ Families</span>
+
+          <div className="flex flex-col gap-1 items-center min-w-0" aria-label={`Completed Sessions: ${bookings}`}>
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="w-2.5 h-2.5 text-[#8a8591]" />
+              <span className="text-[7px] font-black text-[#8a8591] uppercase tracking-[0.2em] whitespace-nowrap" aria-hidden="true">Sessions</span>
+            </div>
+            <span className="text-[13px] font-black text-white/90 whitespace-nowrap">{bookings}+</span>
           </div>
-          <div className="flex flex-col gap-0.5 items-end" aria-label={`Fee: ${price} rupees`}>
-            <span className="text-[8px] font-black text-[#8a8591] uppercase tracking-[0.2em]" aria-hidden="true">Fee</span>
-            <span className="text-sm font-black text-[#c5b8f8]">₹{price}</span>
+
+          <div className="flex flex-col gap-1 items-end min-w-0" aria-label={`Fee: ${price} rupees`}>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[7px] font-black text-[#8a8591] uppercase tracking-[0.2em] whitespace-nowrap" aria-hidden="true">Session</span>
+            </div>
+            <span className="text-[13px] font-black text-[#c5b8f8] whitespace-nowrap">₹{price}</span>
           </div>
         </div>
 
         {/* CTA Button */}
         <div className="relative group/btn">
           <div className="absolute inset-0 bg-[#8b7ff0] blur-[15px] opacity-20 group-hover/btn:opacity-40 transition-opacity" />
-          <div className="relative w-full py-4 rounded-2xl bg-[#8b7ff0] text-[#0d0f1a] text-[11px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-3 transition-all duration-500 overflow-hidden" aria-label={`Consult Now with ${provider.name}`}>
-            <span>Consult Now</span>
+          <div className="relative w-full py-4 rounded-2xl bg-[#8b7ff0] text-[#0d0f1a] text-[11px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-3 transition-all duration-500 overflow-hidden" aria-label={`Schedule Session with ${provider.name}`}>
+            <span>Schedule Session</span>
             <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" aria-hidden="true" />
             
             {/* Gloss shine effect */}

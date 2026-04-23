@@ -47,7 +47,7 @@ export default async function SanctuarySessions() {
       service:services(*),
       child:children(*)
     `)
-    .eq("user_id", user.id)
+    .eq("parent_id", user.id)
     .gte("start_time", new Date().toISOString())
     .order("start_time", { ascending: true });
 
@@ -174,7 +174,7 @@ export default async function SanctuarySessions() {
                   <Calendar className="w-12 h-12 text-[#47464c] mx-auto mb-4" />
                   <h3 className="font-manrope text-xl font-bold text-[#e1e0fa] mb-2">No upcoming sessions</h3>
                   <p className="text-[#8a879c]">When you book a session, it will appear here.</p>
-                  <Link href="/book">
+                  <Link href="/booking/checkout">
                      <Button className="mt-6 bg-[#baccb3] text-[#221a11] hover:bg-[#d6e8ce] rounded-full px-8 py-6 uppercase font-black text-[10px] tracking-widest">
                         Book a Session
                      </Button>

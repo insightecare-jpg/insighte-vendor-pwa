@@ -42,9 +42,9 @@ export async function generateMetadata({
 
   return {
     title: `${provider.name} | ${provider.specializations?.[0] || 'Specialist'} | Insighte`,
-    description: provider.bio || `View the profile of ${provider.name}, a verified specialist on Insighte.`,
+    description: provider.bio || `View the profile of ${provider.name}, a verified specialist on Insighte with ${provider.verified_sessions_count}+ sessions completed.`,
     openGraph: {
-      title: `${provider.name} — Verified Specialist`,
+      title: `${provider.name} — Verified Specialist on Insighte`,
       description: provider.bio,
       images: [provider.avatar_url || ""],
     }
@@ -65,18 +65,18 @@ export default async function ProviderProfileSanctuary({
   }
 
   return (
-    <div className="min-h-screen bg-[#111224] text-white">
+    <div className="min-h-screen bg-[#0d0f1a] text-[#e8e2d8]">
       <Navbar />
 
       <main className="mx-auto max-w-7xl px-6 pt-36 pb-32">
-        {/* BACK NAVIGATION POD */}
-        <Link href="/specialists" className="inline-flex mb-12 animate-fade-in-up">
-           <button className="pod h-14 px-8 group hover:scale-[1.02] transition-all">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#D3C4B5] flex items-center gap-3">
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                Return to Discovery
-              </span>
-           </button>
+        {/* BACK NAVIGATION */}
+        <Link href="/specialists" className="inline-flex mb-16 group">
+            <div className="flex items-center gap-3 py-3 px-6 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 text-[#8b7ff0]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8a8591]">
+                  Return to Discovery
+                </span>
+            </div>
         </Link>
 
         <ProfileClient provider={provider} />
@@ -84,5 +84,6 @@ export default async function ProviderProfileSanctuary({
 
       <Footer />
     </div>
+
   );
 }

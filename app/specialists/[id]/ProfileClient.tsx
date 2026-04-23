@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { 
@@ -14,392 +14,465 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
-  ChevronDown,
   GraduationCap,
-  Briefcase,
-  Plus,
-  User
+  Target,
+  Calendar,
+  MessageSquare,
+  Zap,
+  HelpCircle,
+  CalendarCheck,
+  Globe,
+  Fingerprint,
+  Users,
+  ArrowUpRight,
+  ChevronRight,
+  Verified
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { cn, getExpertImage, formatCurrency } from "@/lib/utils";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
-function Accordion({ title, icon, children, defaultOpen = false }: { title: string, icon: React.ReactNode, children: React.ReactNode, defaultOpen?: boolean }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+// ═══ DESIGN TOKENS (MAGAZINE STYLE) ═══
+const COLORS = {
+  bg: "#0a0b14",
+  accent: "#8b7ff0",
+  success: "#5dcaa5",
+  warning: "#ef9f27",
+  textPrimary: "#f0ece4",
+  textSecondary: "#8a8591",
+  glassBg: "rgba(255,255,255,0.03)",
+  glassBorder: "rgba(255,255,255,0.08)"
+};
+
+export default function ProfileClient({ provider }: { provider: any }) {
+  const shouldReduceMotion = useReducedMotion();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Data Normalization
+  const services = provider.services || [];
+  const reviews = provider.reviews || [];
+  const positiveFit = provider.provider_fit_items?.filter((f: any) => f.is_positive) || [];
+  const cautiousFit = provider.provider_fit_items?.filter((f: any) => !f.is_positive) || [];
+  
+  const outcomes = provider.provider_outcomes?.length > 0 ? provider.provider_outcomes : [
+    { title: "Building Trust", timeframe: "Phase 1", description: "Establishing a safe, affirming connection through shared interests and sensory respect." },
+    { title: "Parent Empowerment", timeframe: "Phase 2", description: "Collaboratively developing support rhythms that work within your family's unique lifestyle." },
+    { title: "Sustainable Growth", timeframe: "Long-term", description: "Seeing your child move with confidence and joy in their natural environments." }
+  ];
+  
+  const price = provider.first_session_price || provider.rate || "1500";
+  const sessionCount = provider.verified_sessions_count || "120";
+  const modes = provider.mode?.split('/') || ['Online', 'Clinic'];
+  
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="bg-[#191a2d]/60 rounded-2xl border border-white/5 overflow-hidden">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-14 px-6 flex items-center justify-between group transition-colors hover:bg-white/5"
-      >
-        <div className="flex items-center gap-3">
-          <div className="text-[#baccb3]">{icon}</div>
-          <span className="text-xs font-bold text-[#c8c5cd]">{title}</span>
-        </div>
-        <ChevronDown className={cn("h-4 w-4 text-zinc-600 transition-transform duration-400", isOpen && "rotate-180 text-white")} />
-      </button>
+    <div className="relative min-h-screen bg-[#0a0b14] text-[#f0ece4] selection:bg-[#8b7ff0]/30 overflow-x-hidden">
+      
+      {/* ═══ AMBIENT CANVAS ═══ */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#8b7ff0]/5 blur-[150px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#5dcaa5]/5 blur-[150px] rounded-full" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] mix-blend-overlay" />
+      </div>
+
+      {/* ═══ PERSISTENT DECISION BAR ═══ */}
       <AnimatePresence>
-        {isOpen && (
+        {scrolled && (
           <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} 
-            className="px-6 pb-6"
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            className="fixed top-0 left-0 right-0 z-[100] h-20 bg-[#0a0b14]/80 backdrop-blur-3xl border-b border-white/5 px-6 flex items-center justify-center"
           >
-            {children}
+            <div className="max-w-7xl w-full flex items-center justify-between">
+               <div className="flex items-center gap-4">
+                  <div className="relative h-10 w-10 rounded-full overflow-hidden border border-white/10 shadow-lg">
+                    <Image src={getExpertImage(provider)} fill alt={provider.name} className="object-cover" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black italic tracking-tight font-dm-serif">{provider.name}</h3>
+                    <div className="flex items-center gap-2">
+                       <span className="text-[9px] font-black text-[#8b7ff0] uppercase tracking-widest">{provider.category || 'Specialist'}</span>
+                       <span className="w-1 h-1 rounded-full bg-white/10" />
+                       <span className="text-[9px] font-black text-[#8a8591] uppercase tracking-widest">Available</span>
+                    </div>
+                  </div>
+               </div>
+               
+               <div className="flex items-center gap-6">
+                  <div className="text-right hidden sm:block">
+                     <p className="text-xl font-black italic tracking-tighter text-[#f0ece4]">₹2200 <span className="text-[9px] text-[#8a8591] ml-2 non-italic uppercase tracking-widest font-black">/ SESSION</span></p>
+                  </div>
+                  <Button 
+                    onClick={() => scrollToSection('booking')}
+                    className="h-12 px-6 rounded-xl bg-[#8b7ff0] text-[#0a0b14] font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-[#8b7ff0]/10"
+                  >
+                    Check Availability
+                  </Button>
+               </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
 
-export default function ProfileClient({ provider }: { provider: any }) {
-  const [serviceFilter, setServiceFilter] = useState("All");
-
-  const services = provider.services || [];
-  const reviews = provider.reviews || [];
-  const slots = provider.slots || [];
-  const allTags = Array.from(new Set([
-    ...(provider.specializations || provider.specialisations || []),
-    ...(provider.category ? [provider.category] : [])
-  ]));
-  const price = provider.first_session_price || provider.consultation_fee || provider.rate || (services?.[0]?.price) || "450";
-  const bookings = provider.booking_count || provider.total_bookings || 120;
-  const filterCategories = ["All", "1:1 Call", "Priority DM", "Digital Product", "Package"];
-  const filteredServices = serviceFilter === "All" ? services : services.filter((s: any) => s.type === serviceFilter);
-
-  return (
-    <div className="max-w-6xl mx-auto">
-
-      {/* ═══ ABOVE-THE-FOLD HERO ═══ */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-40">
         
-        {/* Left: Photo + Quick Stats */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="relative w-full aspect-square max-w-[320px] mx-auto lg:mx-0 rounded-3xl overflow-hidden border-2 border-white/5 bg-[#191a2d]">
-            {(() => {
-              const category = (provider.category || provider.provider_type || "").toLowerCase();
-              let fallback = "/images/experts/special_educator.png";
-              if (category.includes("speech")) fallback = "/images/experts/speech_therapist.png";
-              else if (category.includes("autism") || category.includes("aba")) fallback = "/images/experts/autism_specialist.png";
-              else if (category.includes("counsel") || category.includes("behavior")) fallback = "/images/experts/behavioral_specialist.png";
+        {/* ═══ 1. HERO SECTION: COMPACT MAGAZINE LAYOUT ═══ */}
+        <section className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-24 items-start">
+          
+          {/* Portrait Image Block */}
+          <div className="md:col-span-4 lg:col-span-3">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl group"
+            >
+              <Image 
+                src={getExpertImage(provider)} 
+                fill 
+                className="object-cover object-top transition-all duration-1000 group-hover:scale-[1.05]" 
+                alt={provider.name} 
+                priority 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b14] via-transparent to-transparent opacity-60" />
               
-              return (
-                <Image
-                  src={provider.avatar_url || provider.profile_image || fallback}
-                  fill
-                  alt={provider.name}
-                  sizes="(max-width: 768px) 100vw, 320px"
-                  priority
-                  className="object-cover"
-                />
-              );
-            })()}
-            {provider.verified !== false && (
-              <div className="absolute top-4 right-4 bg-[#baccb3] p-2 rounded-xl shadow-lg">
-                <ShieldCheck className="w-4 h-4 text-[#111224]" />
+              <div className="absolute top-4 left-4">
+                 <div className="flex items-center gap-2 py-1.5 px-3 rounded-full bg-[#0a0b14]/60 backdrop-blur-xl border border-white/5">
+                    <ShieldCheck className="w-3 h-3 text-[#5dcaa5]" />
+                    <span className="text-[8px] font-black text-white uppercase tracking-widest">Verified Specialist</span>
+                 </div>
               </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Right: Key Decision Info */}
-        <div className="lg:col-span-8 flex flex-col justify-center space-y-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Badge className="bg-[#baccb3]/10 text-[#baccb3] border-none rounded-full px-4 py-1 text-[10px] font-bold">
-                <ShieldCheck className="w-3 h-3 mr-1" /> Verified
-              </Badge>
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-[#d3c4b5] fill-[#d3c4b5]" />
-                <span className="text-sm font-bold text-white">{provider.rating || "4.9"}</span>
-                <span className="text-xs text-[#c8c5cd]">({reviews.length || "50"}+ reviews)</span>
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold font-manrope tracking-tight text-white mb-2">{provider.name}</h1>
-            <p className="text-base text-[#d3c4b5] font-medium">{provider.category || "Care Specialist"}</p>
-          </div>
-          
-          {/* Quick Facts Row */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-[#c8c5cd]">
-            {provider.experience_years && (
-              <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-[#baccb3]" /> {provider.experience_years}+ years experience
-              </span>
-            )}
-            <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-[#baccb3]" /> {bookings}+ families supported
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-[#d3c4b5]" /> {provider.city || "Bangalore"} {provider.mode && `• ${provider.mode}`}
-            </span>
-          </div>
-
-          {/* Specialization Tags */}
-          <div className="flex flex-wrap gap-2">
-            {allTags.slice(0, 6).map(tag => (
-              <span key={tag as string} className="px-3.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-xs font-bold text-[#c8c5cd]">
-                {tag as string}
-              </span>
-            ))}
-          </div>
-
-          {/* Price + CTA */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-4 border-t border-white/5">
-            <div>
-              <p className="text-xs text-[#c8c5cd] mb-1">From</p>
-              <span className="text-3xl font-extrabold text-white">₹{price}</span>
-              <span className="text-sm text-[#c8c5cd]">/session</span>
-            </div>
-            <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
-              <Link href={`/book/${provider.id}`} className="flex-1 sm:flex-initial">
-
-                <Button className="w-full sm:w-auto h-14 px-10 rounded-full bg-[#d3c4b5] text-[#382f24] font-bold text-sm hover:bg-white transition-all shadow-xl shadow-[#d3c4b5]/10 active:scale-95 flex items-center gap-3">
-                  Book Session <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <span className="text-xs text-[#baccb3] flex items-center gap-1.5 whitespace-nowrap">
-                <Clock className="w-3.5 h-3.5" /> Available today
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ BELOW THE FOLD ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Column: About, Approach, Credentials */}
-        <div className="lg:col-span-7 space-y-6">
-          
-          {/* About */}
-          <div className="bg-[#191a2d]/60 rounded-2xl border border-white/5 p-8 shadow-xl">
-            <h2 className="text-xl font-bold font-manrope text-white mb-4 italic">About</h2>
-            <p className="text-[#c8c5cd] leading-relaxed italic">
-              {provider.about || provider.bio || `${provider.name} is a dedicated specialist who works with children and families using evidence-based, neuro-affirming methods.`}
-            </p>
-          </div>
-
-          {/* Approach */}
-          <div className="bg-[#191a2d]/60 rounded-2xl border border-white/5 p-8 shadow-xl">
-            <h2 className="text-xl font-bold font-manrope text-white mb-4 italic">Approach</h2>
-            {provider.approach ? (
-              <p className="text-[#c8c5cd] leading-relaxed italic whitespace-pre-line">{provider.approach}</p>
-            ) : (
-              <ul className="space-y-3 text-[#c8c5cd] italic">
-                <li className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-[#baccb3] mt-1 shrink-0" />
-                  <span>Play-based, child-centered methods that make sessions engaging</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-[#baccb3] mt-1 shrink-0" />
-                  <span>Neuro-affirming practice that celebrates how your child learns</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-[#baccb3] mt-1 shrink-0" />
-                  <span>Regular progress updates so you always know what's working</span>
-                </li>
-              </ul>
-            )}
-          </div>
-
-          {/* Parent Outcomes (Insights Analyzer) */}
-          <div className="vessel bg-[#191a2d]/60 rounded-2xl border border-white/5 p-8 shadow-2xl">
-            <h2 className="text-xl font-bold font-manrope text-white mb-6 italic flex items-center gap-3">
-               <Sparkles className="h-5 w-5 text-[#D3C4B5]" />
-               What parents report after sessions
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(provider.parent_insights || [
-                "Improved communication and social skills",
-                "Better focus and attention at school",
-                "Reduced anxiety and emotional regulation",
-                "More confidence in daily activities",
-                "Stronger family understanding and support",
-                "Measurable progress milestones every month"
-              ]).map((outcome: string, i: number) => (
-                <div key={i} className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-[#c8c5cd] italic">
-                   <CheckCircle2 className="w-4 h-4 text-[#baccb3] shrink-0" />
-                   <span>{outcome}</span>
-                </div>
-              ))}
+            </motion.div>
+            
+            {/* Quick Trust Meta */}
+            <div className="mt-6 grid grid-cols-2 gap-4">
+               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-xl text-center group transition-all hover:bg-white/[0.04]">
+                  <p className="text-[8px] font-black text-[#8a8591] uppercase tracking-widest mb-1">Experience</p>
+                  <p className="text-lg font-black italic tracking-tight font-dm-serif">{provider.experience_years || '8'}+ Yrs</p>
+               </div>
+               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-xl text-center group transition-all hover:bg-white/[0.04]">
+                  <p className="text-[8px] font-black text-[#8a8591] uppercase tracking-widest mb-1">Families</p>
+                  <p className="text-lg font-black italic tracking-tight font-dm-serif">{sessionCount}+</p>
+               </div>
             </div>
           </div>
 
-          {/* Credentials */}
-          <Accordion title="Education & Credentials" icon={<GraduationCap className="h-4 w-4" />}>
-            <div className="space-y-4 pt-3">
-              {(provider.academic_experience || []).length > 0 ? (
-                provider.academic_experience.map((edu: any, i: number) => (
-                  <div key={i} className="border-l-2 border-[#baccb3]/20 pl-4 space-y-0.5">
-                    <p className="text-sm font-bold text-white uppercase italic">{edu.degree}</p>
-                    <p className="text-xs text-[#c8c5cd]">{edu.school} • {edu.year}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-zinc-600 italic">Credentials pending verification</p>
-              )}
-            </div>
-          </Accordion>
-
-          <Accordion title="Work Experience" icon={<Briefcase className="h-4 w-4" />}>
-            <div className="space-y-4 pt-3">
-              {(provider.professional_experience || []).length > 0 ? (
-                provider.professional_experience.map((work: any, i: number) => (
-                  <div key={i} className="border-l-2 border-[#d3c4b5]/20 pl-4 space-y-0.5">
-                    <p className="text-sm font-bold text-white uppercase italic">{work.role}</p>
-                    <p className="text-xs text-[#c8c5cd]">{work.company} • {work.duration}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-zinc-600 italic">Experience details pending</p>
-              )}
-            </div>
-          </Accordion>
-        </div>
-
-        {/* Right Column: Services, Reviews, Booking */}
-        <div className="lg:col-span-5 space-y-6">
-          
-          {/* Services */}
-          <div className="bg-[#191a2d]/60 rounded-2xl border border-white/5 p-6">
-            <h2 className="text-lg font-bold font-manrope text-white mb-4">Services & Pricing</h2>
-            <div className="flex flex-wrap gap-2 mb-5">
-              {filterCategories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setServiceFilter(cat)}
-                  className={cn(
-                    "px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all",
-                    serviceFilter === cat
-                      ? "bg-[#baccb3] text-[#111224]"
-                      : "bg-white/5 text-[#c8c5cd] hover:bg-white/10"
-                  )}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-            <div className="space-y-3">
-              {filteredServices.length === 0 ? (
-                <p className="text-sm text-zinc-600 py-6 text-center italic">No services listed in this category</p>
-              ) : (
-                filteredServices.map((service: any) => (
-                  <div key={service.id} className="bg-white/5 rounded-xl p-5 border border-white/5 hover:border-[#d3c4b5]/20 transition-all group">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <Badge className="bg-[#d3c4b5]/10 text-[#d3c4b5] border-none mb-2 text-[9px] font-bold rounded-md px-2 py-0.5">
-                          {service.type}
-                        </Badge>
-                        <h3 className="text-base font-bold text-white leading-tight">{service.title}</h3>
-                      </div>
-                      <span className="text-xl font-extrabold text-white shrink-0 ml-4">₹{service.price}</span>
-                    </div>
-                    <p className="text-xs text-[#c8c5cd] leading-relaxed mb-3 line-clamp-2">
-                      {service.description || "Book a personalized session"}
-                    </p>
-                    <Link href={`/book/${provider.id}?service_id=${service.id}`}>
-
-                      <Button size="sm" className="w-full h-10 bg-[#d3c4b5] text-[#382f24] rounded-lg text-xs font-bold hover:bg-white transition-all active:scale-95">
-                        Book This Session <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                      </Button>
-                    </Link>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Reviews */}
-          <div className="bg-[#191a2d]/60 rounded-2xl border border-white/5 p-6">
-            <h2 className="text-lg font-bold font-manrope text-white mb-4">
-              Reviews <span className="text-sm font-normal text-[#c8c5cd]">({reviews.length || "0"})</span>
-            </h2>
+          {/* Core Info Block */}
+          <div className="md:col-span-8 lg:col-span-6 space-y-8">
             <div className="space-y-4">
-              {reviews.length === 0 ? (
-                <p className="text-sm text-zinc-600 py-4 text-center italic">No reviews yet — be the first!</p>
-              ) : (
-                reviews.slice(0, 4).map((rev: any) => (
-                  <div key={rev.id} className="bg-white/5 rounded-xl p-5 border border-white/5">
-                    <div className="flex items-center gap-1 mb-2">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 text-[#d3c4b5] fill-current" />
+              <div className="flex flex-wrap items-center gap-4">
+                <Badge className="bg-[#8b7ff015] text-[#8b7ff0] border-none px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
+                  {provider.category || 'Specialist Partner'}
+                </Badge>
+                <div className="flex items-center gap-1 text-[#ef9f27]">
+                   {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-current" />)}
+                </div>
+              </div>
+
+              <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter !leading-[0.9] text-white font-dm-serif">
+                {provider.name}
+              </h1>
+              
+              <p className="text-lg md:text-xl text-[#8a8591] italic font-medium leading-relaxed max-w-xl">
+                {provider.tagline || provider.bio || "Dedicated to building a world where every child is understood, empowered, and celebrated."}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-8 py-8 border-y border-white/5">
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black text-[#8a8591] uppercase tracking-[0.2em]">Clinical Specialty</p>
+                   <p className="text-base font-black italic text-white flex items-center gap-2">
+                     <Sparkles className="w-4 h-4 text-[#8b7ff0]" />
+                     {provider.specializations?.[0] || 'Neuro-Inclusive Care'}
+                   </p>
+                </div>
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black text-[#8a8591] uppercase tracking-[0.2em]">Based in</p>
+                   <p className="text-base font-black italic text-white flex items-center gap-2">
+                     <MapPin className="w-4 h-4 text-[#5dcaa5]" />
+                     {provider.city || 'Pan-India Coverage'}
+                   </p>
+                </div>
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black text-[#8a8591] uppercase tracking-[0.2em]">Language</p>
+                   <p className="text-base font-black italic text-white">English, Hindi</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+               <button 
+                 onClick={() => scrollToSection('booking')}
+                 className="h-16 rounded-2xl bg-[#8b7ff0] text-[#0a0b14] font-black text-[11px] uppercase tracking-widest hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl shadow-[#8b7ff0]/10"
+               >
+                 Check Slots <CalendarCheck className="w-4 h-4" />
+               </button>
+            </div>
+          </div>
+
+          {/* Pricing/Booking Quick Sidebar (Desktop) */}
+          <div className="hidden lg:block lg:col-span-3">
+             <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 backdrop-blur-3xl sticky top-32 space-y-8 shadow-2xl">
+                <div className="space-y-4" id="booking">
+                   <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-[#8a8591]">
+                      <span>Consultation</span>
+                      <span className="flex items-center gap-1.5 text-[#5dcaa5]">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#5dcaa5] animate-pulse" />
+                        Available
+                      </span>
+                   </div>
+                   <div className="flex items-end gap-2">
+                      <p className="text-5xl font-black italic text-white font-dm-serif">₹2200</p>
+                      <p className="text-[9px] font-black text-[#8a8591] uppercase tracking-widest mb-2">/ SESSION</p>
+                   </div>
+                   <p className="text-[10px] text-[#8a8591] italic font-medium">Standard 60-minute therapeutic session or comprehensive intake evaluation.</p>
+                </div>
+
+                <div className="space-y-3">
+                   <div className="flex items-center gap-3 text-[10px] font-black text-white uppercase tracking-widest">
+                      <div className="p-2 rounded-lg bg-white/5"><Globe className="w-3.5 h-3.5 text-[#8b7ff0]" /></div>
+                      {modes.join(' & ')}
+                   </div>
+                   <div className="flex items-center gap-3 text-[10px] font-black text-white uppercase tracking-widest">
+                      <div className="p-2 rounded-lg bg-white/5"><Zap className="w-3.5 h-3.5 text-[#8b7ff0]" /></div>
+                      Express Report (24h)
+                   </div>
+                </div>
+
+                <Link href={`/booking/checkout?type=expert_session&expertId=${provider.id}`} className="block">
+                  <button className="w-full h-16 rounded-2xl bg-white text-[#0a0b14] font-black text-[11px] uppercase tracking-widest hover:scale-[1.02] transition-all flex items-center justify-center gap-2 group">
+                    Schedule Session <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </button>
+                </Link>
+             </div>
+          </div>
+        </section>
+
+        {/* ─── 2. DECISION GRID: SUITABILITY & TRUST ─── */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mb-32">
+          
+          {/* Detailed Content Column */}
+          <div className="lg:col-span-8 space-y-24">
+            
+            {/* Suitability / Fit Analysis */}
+            <div id="suitability">
+              <div className="mb-10 space-y-2">
+                 <div className="flex items-center gap-3 text-[10px] font-black text-[#8a8591] uppercase tracking-[0.3em]">
+                   <Fingerprint className="w-4 h-4" />
+                   Suitability Analysis
+                 </div>
+                 <h2 className="text-4xl font-black italic tracking-tight text-white font-dm-serif">Is this the right expert?</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div className="p-8 rounded-[2rem] bg-[#5dcaa5]/5 border border-[#5dcaa5]/10 space-y-6">
+                    <p className="text-[9px] font-black text-[#5dcaa5] uppercase tracking-widest">A Strong Match For:</p>
+                    <ul className="space-y-4">
+                      {positiveFit.length > 0 ? positiveFit.map((f: any, i: number) => (
+                        <li key={i} className="flex gap-3 text-base font-bold italic leading-snug text-[#f0ece4]">
+                           <CheckCircle2 className="w-5 h-5 text-[#5dcaa5] shrink-0 mt-0.5" />
+                           {f.content}
+                        </li>
+                      )) : (
+                        ['Sensory-friendly interventions', 'Affirming support for ADHD/Autism', 'Language & communication milestones'].map((text, i) => (
+                          <li key={i} className="flex gap-3 text-base font-bold italic leading-snug text-[#f0ece4]">
+                             <CheckCircle2 className="w-5 h-5 text-[#5dcaa5] shrink-0 mt-0.5" />
+                             {text}
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                 </div>
+
+                 <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-6 opacity-80">
+                    <p className="text-[9px] font-black text-[#8a8591] uppercase tracking-widest">Consider Alternatives If:</p>
+                    <ul className="space-y-4">
+                      {cautiousFit.map((f: any, i: number) => (
+                        <li key={i} className="flex gap-3 text-[13px] font-medium italic text-[#8a8591] leading-snug">
+                           <HelpCircle className="w-4 h-4 text-white/5 shrink-0 mt-0.5" />
+                           {f.content}
+                        </li>
                       ))}
+                      <li className="flex gap-3 text-[13px] font-medium italic text-[#8a8591] leading-snug">
+                         <HelpCircle className="w-4 h-4 text-white/10 shrink-0 mt-0.5" />
+                         Looking for purely academic tutoring without developmental support.
+                      </li>
+                    </ul>
+                 </div>
+              </div>
+            </div>
+
+            {/* Approach / Narrative */}
+            <div>
+              <div className="mb-10 space-y-2">
+                 <div className="flex items-center gap-3 text-[10px] font-black text-[#8a8591] uppercase tracking-[0.3em]">
+                   <Users className="w-4 h-4" />
+                   The Expert Voice
+                 </div>
+                 <h2 className="text-4xl font-black italic tracking-tight text-white font-dm-serif">Support Philosophy</h2>
+              </div>
+
+              <div className="p-10 md:p-14 rounded-[3rem] bg-white/[0.02] border border-white/5 relative overflow-hidden group">
+                 <Quote className="absolute -top-6 -right-6 w-32 h-32 text-white/[0.02] rotate-12" />
+                 <p className="text-2xl md:text-3xl font-black italic text-[#f0ece4] leading-relaxed mb-10 font-dm-serif">
+                   "{provider.suitability_notes || provider.bio || "We believe in connection before correction. Our goal is not to fix, but to understand and provide the tools for meaningful growth."}"
+                 </p>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-white/5">
+                    <div className="space-y-4">
+                       <h4 className="text-[9px] font-black text-[#8b7ff0] uppercase tracking-widest">Core Methodology</h4>
+                       <p className="text-sm text-[#8a8591] font-medium italic leading-relaxed">Strength-based and joy-led interventions that prioritize the child's perspective and autonomy.</p>
                     </div>
-                    <p className="text-sm text-[#c8c5cd] leading-relaxed mb-3 line-clamp-3">"{rev.content}"</p>
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-[#d3c4b5]/10 flex items-center justify-center text-xs font-bold text-[#d3c4b5]">
-                        {rev.parent_name?.[0] || "P"}
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-white">{rev.parent_name}</p>
-                        <p className="text-[10px] text-zinc-600">Verified Parent</p>
-                      </div>
+                    <div className="space-y-4">
+                       <h4 className="text-[9px] font-black text-[#8a8591] uppercase tracking-widest">Parent Partnership</h4>
+                       <p className="text-sm text-[#8a8591] font-medium italic leading-relaxed">Collaborative goal setting and active parent training to ensure progress continues at home.</p>
                     </div>
-                  </div>
-                ))
+                 </div>
+              </div>
+            </div>
+
+            {/* Transformation Path */}
+            <div id="outcomes">
+              <div className="mb-10 space-y-2">
+                 <div className="flex items-center gap-3 text-[10px] font-black text-[#8a8591] uppercase tracking-[0.3em]">
+                   <Target className="w-4 h-4" />
+                   The Transformation Journey
+                 </div>
+                 <h2 className="text-4xl font-black italic tracking-tight text-white font-dm-serif">What outcomes typical families see</h2>
+              </div>
+
+              <div className="space-y-4">
+                 {outcomes.map((outcome: any, i: number) => (
+                    <div key={i} className="flex gap-6 items-start group">
+                       <div className="flex flex-col items-center gap-2">
+                          <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-sm font-black text-[#8b7ff0] group-hover:bg-[#8b7ff0] group-hover:text-[#0a0b14] transition-all duration-500">
+                             0{i+1}
+                          </div>
+                          <div className="w-px h-16 bg-white/5 group-last:hidden" />
+                       </div>
+                       <div className="pt-2 space-y-2">
+                          <div className="flex items-center gap-3">
+                             <h4 className="text-xl font-black italic text-white">{outcome.title}</h4>
+                             <span className="text-[8px] font-black uppercase text-[#8a8591] border border-white/10 px-2 py-0.5 rounded-md">{outcome.timeframe}</span>
+                          </div>
+                          <p className="text-base text-[#8a8591] font-medium italic leading-relaxed max-w-2xl">{outcome.description}</p>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+            </div>
+
+            {/* Social Proof / Testimonials */}
+            <div>
+              <div className="mb-10 space-y-2 text-center md:text-left">
+                 <div className="flex items-center justify-center md:justify-start gap-3 text-[10px] font-black text-[#8a8591] uppercase tracking-[0.3em]">
+                   <MessageSquare className="w-4 h-4" />
+                   Parent Testimonials
+                 </div>
+                 <h2 className="text-4xl font-black italic tracking-tight text-white font-dm-serif">Reflections from families</h2>
+              </div>
+
+              {reviews.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   {reviews.map((rev: any, i: number) => (
+                      <div key={i} className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 flex flex-col gap-6 group hover:bg-white/[0.04] transition-all duration-500">
+                         <div className="flex gap-1 text-[#ef9f27]">
+                            {[...Array(5)].map((_, j) => <Star key={j} className="w-2.5 h-2.5 fill-current" />)}
+                         </div>
+                         <p className="text-base font-black italic text-[#f0ece4] leading-relaxed flex-1">"{rev.content}"</p>
+                         <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+                            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-black text-[#8a8591]">{rev.parent_name?.[0] || 'P'}</div>
+                            <div>
+                               <p className="text-[9px] font-black text-white uppercase tracking-widest">{rev.parent_name || 'Verified Family'}</p>
+                               <p className="text-[7px] font-black text-[#8a8591] uppercase tracking-widest">Confirmed Session</p>
+                            </div>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+              ) : (
+                <div className="p-16 rounded-[3rem] bg-white/[0.01] border border-dashed border-white/10 text-center space-y-4">
+                   <p className="text-lg font-black italic text-[#8a8591]">Fresh reflections arriving soon.</p>
+                   <p className="text-[10px] uppercase font-black text-[#8a8591]/40 tracking-widest">We verify 100% of parent feedback.</p>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Booking CTA (Sticky on Mobile) */}
-          <div className="bg-gradient-to-br from-[#d3c4b5]/10 to-[#baccb3]/10 rounded-2xl border border-[#d3c4b5]/20 p-8 text-center space-y-4">
-            <h3 className="text-xl font-bold font-manrope text-[#f0e0d0]">Ready to start?</h3>
-            <p className="text-sm text-[#c8c5cd]">Book a session with {provider.name.split(' ')[0]} and take the first step.</p>
-            <Link href={`/book/${provider.id}`}>
+          {/* Logistics & Trust Column */}
+          <div className="lg:col-span-4 space-y-8">
+             
+             {/* Next Steps / Process */}
+             <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 backdrop-blur-3xl space-y-8">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#8b7ff0]">What's Next?</h3>
+                <div className="space-y-6">
+                   {[
+                     { step: "Secure Slot", icon: Calendar, text: "Book your preferred date and time instantly." },
+                     { step: "Deep-Dive Session", icon: Sparkles, text: "60-minute connection focused on your child's needs." },
+                     { step: "Personalized Roadmap", icon: Target, text: "Receive a clinical report and growth path in 24h." }
+                   ].map((item, i) => (
+                      <div key={i} className="flex gap-4">
+                         <div className="shrink-0 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#8a8591] group-hover:text-white transition-colors">
+                            <item.icon className="w-4 h-4" />
+                         </div>
+                         <div className="space-y-1">
+                            <h4 className="text-[11px] font-black text-white uppercase tracking-widest">{item.step}</h4>
+                            <p className="text-[11px] text-[#8a8591] italic font-medium leading-relaxed">{item.text}</p>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             </div>
 
-              <Button className="w-full h-14 rounded-full bg-[#d3c4b5] text-[#382f24] font-bold text-sm hover:bg-white transition-all shadow-xl shadow-[#d3c4b5]/15 active:scale-95 flex items-center justify-center gap-3">
-                Book Session Now <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
+             {/* Unsure? CTA */}
+             <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-[#ef9f27]/10 to-transparent border border-[#ef9f27]/20 space-y-6">
+                <HelpCircle className="w-8 h-8 text-[#ef9f27]" />
+                <div className="space-y-3">
+                   <h3 className="text-xl font-black italic text-white tracking-tight">Still unsure?</h3>
+                   <p className="text-xs text-[#8a8591] font-medium leading-relaxed italic">Finding the right expert is a journey. Our clinical care team can help you match with the perfect partner for your child's profile.</p>
+                   <Link href="/triage" className="inline-flex items-center gap-2 text-[9px] font-black text-[#ef9f27] uppercase tracking-[0.2em] hover:translate-x-1 transition-transform pt-2">
+                     Start Matching Flow <ArrowRight className="w-3 h-3" />
+                   </Link>
+                </div>
+             </div>
+
+             {/* Verification Seal */}
+             <div className="flex items-center justify-center gap-4 py-8 px-6 border border-white/5 rounded-[2.5rem] bg-white/[0.01]">
+                <ShieldCheck className="w-6 h-6 text-[#5dcaa5]" />
+                <p className="text-[9px] font-black text-[#8a8591] uppercase tracking-[0.2em] italic">
+                   Rigorous 5-step clinical vetting process.
+                </p>
+             </div>
           </div>
+        </section>
 
-          {/* Available Slots */}
-          {slots.length > 0 && (
-            <div className="bg-[#191a2d]/60 rounded-2xl border border-white/5 p-6">
-              <h2 className="text-lg font-bold font-manrope text-white mb-4">Available This Week</h2>
-              <div className="grid grid-cols-2 gap-3">
-                {slots.map((slot: any) => {
-                  const startTime = slot.start_time ? new Date(slot.start_time) : null;
-                  const isValidDate = startTime && !isNaN(startTime.getTime());
-                  
-                  if (!isValidDate) return null;
+      </main>
 
-                  return (
-                    <Link key={slot.id} href={`/book/${provider.id}?slot_id=${slot.id}`}>
-
-                      <button className="w-full flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/5 hover:border-[#baccb3]/30 hover:bg-[#baccb3]/5 transition-all">
-                        <span className="text-[10px] font-bold text-[#c8c5cd]">
-                          {startTime.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
-                        </span>
-                        <span className="text-lg font-bold text-white mt-1">
-                          {startTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                        </span>
-                      </button>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ═══ MOBILE STICKY BOOK BAR ═══ */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-4 py-3 bg-[#111224]/95 backdrop-blur-2xl border-t border-white/5 flex items-center justify-between">
-        <div>
-          <p className="text-lg font-bold text-white">₹{price}<span className="text-xs text-[#c8c5cd] font-normal">/session</span></p>
-          <p className="text-[10px] text-[#baccb3] flex items-center gap-1"><Clock className="w-3 h-3" /> Available today</p>
-        </div>
-        <Link href={`/book/${provider.id}`}>
-
-          <Button className="h-12 px-8 rounded-full bg-[#d3c4b5] text-[#382f24] font-bold text-sm hover:bg-white active:scale-95 shadow-lg">
-            Book Now
-          </Button>
-        </Link>
+      {/* ═══ MOBILE BOTTOM BAR: STICKY BOOKING ═══ */}
+      <div className="md:hidden fixed bottom-8 left-4 right-4 z-[1000]">
+          <div className="bg-[#0a0b14]/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-5 shadow-2xl flex items-center justify-between gap-4 overflow-hidden">
+             <div className="relative z-10">
+                <p className="text-2xl font-black italic text-white">₹2200</p>
+                <p className="text-[8px] font-black text-[#8a8591] uppercase tracking-widest">Next available: Today</p>
+             </div>
+             <Button 
+                onClick={() => scrollToSection('booking')}
+                className="relative z-10 h-14 px-8 rounded-xl bg-[#8b7ff0] text-[#0a0b14] font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-[#8b7ff0]/20"
+             >
+                Book Slot
+             </Button>
+          </div>
       </div>
     </div>
   );

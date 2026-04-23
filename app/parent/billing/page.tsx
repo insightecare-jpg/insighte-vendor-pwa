@@ -23,8 +23,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { ParentBottomNav } from "@/components/navigation/ParentBottomNav";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 const MOCK_INVOICES = [
   { id: "INV-001", date: "28 Mar 2026", service: "Special Education", amount: "1,200 INR", status: "PAID" },
@@ -43,32 +44,34 @@ export default function BillingPage() {
   if (!mounted) return null;
 
   return (
-    <div className="flex min-h-screen-safe flex-col bg-zinc-950 font-sans selection:bg-primary/20">
-      <Navbar />
+    <div className="min-h-screen bg-[#0d1117] text-slate-50 font-dm-sans selection:bg-[#2de0c4]/30 overflow-x-hidden">
+      
+      {/* ── BACKGROUND DEPTH ── */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#2de0c4]/5 blur-[150px] rounded-full" />
+        <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/5 blur-[180px] rounded-full" />
+      </div>
 
-      <main className="flex-1 px-4 pt-32 pb-32 sm:px-6">
-        <div className="mx-auto max-w-7xl animate-fade-in-up">
-           
-           {/* HEADER - BILLING INFRASTRUCTURE */}
-           <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-              <div className="flex flex-col gap-6">
-                 <Badge variant="outline" className="w-fit py-1.5 px-4 font-black tracking-widest text-[9px] uppercase bg-white/5 text-zinc-400 border-white/10 backdrop-blur-md">
-                    <CreditCard className="mr-2 h-3.5 w-3.5 text-success" /> Secure Care Wallet
-                 </Badge>
-                 <h1 className="text-5xl font-black leading-tight tracking-tighter text-white sm:text-7xl lg:text-9xl">
-                    Payout <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/70 to-white/30 italic">Matrix.</span>
-                 </h1>
-                 <p className="text-xl font-medium text-zinc-500 max-w-2xl leading-relaxed">
-                    View your institutional ledger, download clinical invoices, and manage your automated payment protocols.
-                 </p>
+      <main className="relative z-10 mx-auto max-w-7xl px-6 pt-24 pb-32">
+        <header className="mb-20">
+           <div className="flex flex-col gap-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-[#2de0c4] w-fit">
+                 <CreditCard className="w-3.5 h-3.5" /> Secure Care Wallet
               </div>
-
-              <div className="flex items-center gap-4">
-                 <Button className="h-20 rounded-[32px] bg-white text-black px-12 text-xs font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95 group">
-                    <ArrowDownCircle className="mr-3 h-5 w-5 group-hover:-translate-y-1 transition-transform" /> Add Care Funds
-                 </Button>
-              </div>
+              <h1 className="text-4xl md:text-7xl font-serif italic text-white leading-none">
+                 Payout <span className="text-[#2de0c4] italic underline decoration-[#2de0c4]/20 underline-offset-8">Matrix.</span>
+              </h1>
+              <p className="text-sm font-medium text-zinc-500 max-w-2xl leading-relaxed italic">
+                 View your institutional ledger, download clinical invoices, and manage your automated payment protocols.
+              </p>
            </div>
+        </header>
+
+        <div className="flex items-center gap-4 mb-12">
+           <Button className="h-16 rounded-2xl bg-[#2de0c4] text-black px-12 text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all group">
+              <ArrowDownCircle className="mr-3 h-5 w-5 group-hover:-translate-y-1 transition-transform" /> Add Care Funds
+           </Button>
+        </div>
 
            {/* BILLING GRID */}
            <div className="mt-20 grid grid-cols-1 gap-10 lg:grid-cols-12 animate-fade-in-up stagger-2">
@@ -171,10 +174,9 @@ export default function BillingPage() {
 
            </div>
 
-        </div>
       </main>
 
-      <Footer />
+      <ParentBottomNav />
     </div>
   );
 }

@@ -5,8 +5,6 @@ import { Search, Filter, Zap, Share2, Globe, Send, Link as LinkIcon, ChevronDown
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { TopicFilter } from "./_components/listing/TopicFilter";
 
 interface Post {
@@ -196,8 +194,7 @@ export default function BlogClient({ initialPosts }: { initialPosts: Post[] }) {
     { title: "Therapies", count: 15, slug: "therapies" }
   ];
   return (
-    <div className="min-h-screen bg-[#0A0B1A] text-[#e1e0fa] font-sans selection:bg-[#8b7ff0] selection:text-white">
-      <Navbar />
+    <div className="min-h-screen">
 
       <main className="pt-32 pb-60">
         {/* ─── ENLIGHTENED HERO SECTION ───────────────────────────────────────── */}
@@ -372,8 +369,6 @@ export default function BlogClient({ initialPosts }: { initialPosts: Post[] }) {
           )}
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }
