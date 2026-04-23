@@ -2,19 +2,29 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { Button } from "@/components/ui/button";
 
 export default function SetupAuthPage() {
   const [status, setStatus] = useState<string>("Ready to initialize test accounts");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const setupAccounts = async () => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!url || !key) {
+      setStatus("Error: Supabase environment variables missing.");
+      return;
+    }
+
+    const supabase = createBrowserClient(url, key);
     setLoading(true);
     setStatus("Cleaning up...");
 
@@ -44,6 +54,8 @@ export default function SetupAuthPage() {
       setLoading(false);
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="p-8">
