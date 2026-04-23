@@ -10,12 +10,11 @@ export default function SetupAuthPage() {
   const [status, setStatus] = useState<string>("Ready to initialize test accounts");
   const [loading, setLoading] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   const setupAccounts = async () => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     setLoading(true);
     setStatus("Cleaning up...");
 
